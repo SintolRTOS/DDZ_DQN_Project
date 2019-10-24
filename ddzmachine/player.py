@@ -341,11 +341,11 @@ class Player(object):
             return False
         
         #规则判断
-        if cbFirstType!=cbNextType | cbFirstCount!=cbNextCount:
+        if cbFirstType!=cbNextType or cbFirstCount!=cbNextCount:
             return False
         
         #开始对比
-        if cbNextType == CT_SINGLE | cbNextType == CT_DOUBLE | cbNextType == CT_THREE or cbNextType == CT_SINGLE_LINE or cbNextType == CT_DOUBLE_LINE or cbNextType == CT_THREE_LINE or cbNextType == CT_BOMB_CARD:
+        if cbNextType == CT_SINGLE or cbNextType == CT_DOUBLE or cbNextType == CT_THREE or cbNextType == CT_SINGLE_LINE or cbNextType == CT_DOUBLE_LINE or cbNextType == CT_THREE_LINE or cbNextType == CT_BOMB_CARD:
             #获取数值
             cbNextLogicValue = self.getCardLogicValue(cbNextCard[0])
             cbFirstLogicValue = self.getCardLogicValue(cbFirstCard[0])
@@ -394,7 +394,7 @@ class Player(object):
         while bSorted is False:
             bSorted = True
             for i in range(cbLast):
-                if cbSortValue[i]<cbSortValue[i+1] | ((cbSortValue[i]==cbSortValue[i+1]) and (cbCardData[i]<cbCardData[i+1])):
+                if cbSortValue[i]<cbSortValue[i+1] or ((cbSortValue[i]==cbSortValue[i+1]) and (cbCardData[i]<cbCardData[i+1])):
                     #交换位置
                     cbThreeCount=cbCardData[i]
                     cbCardData[i]=cbCardData[i+1]
@@ -470,7 +470,7 @@ class Player(object):
             OutCardResult.cbResultCard[0]=cbCardData[cbCardCount-1]
             
             return True
-        elif cbTurnOutType == CT_SINGLE | cbTurnOutType == CT_DOUBLE | cbTurnOutType == CT_THREE:
+        elif cbTurnOutType == CT_SINGLE or cbTurnOutType == CT_DOUBLE or cbTurnOutType == CT_THREE:
             #获取数值
             cbLogicValue=self.getCardLogicValue(cbTurnCardData[0])
             #分析扑克
