@@ -82,7 +82,7 @@ class DQN_Server(http.server.BaseHTTPRequestHandler):
         except Exception as e:
             logger.info('_post_handler except:', e)
             json_ret = {
-                    'retcode' : 1,
+                    'retcode' : -1,
                     'errormsg' : str(e)
                     }
         return json.dumps(json_ret)

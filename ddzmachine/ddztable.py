@@ -9,8 +9,8 @@ import sys
 sys.path.append("..")
 
 import logger
-from player import Player
-from table import TableInfo
+from ddzmachine.player import Player
+from ddzmachine.table import TableInfo
 
 TOTAL_CARD_COUNT = 54
 TOTAL_PLAYER_COUNT = 3
@@ -26,6 +26,8 @@ class DDZTable(object):
             player = Player(i)
             self.bPlayerList.append(player)
         self.bTableInfo = TableInfo()
+        self.isstarted = False
+        self.tableid = 0
         
 
     def receiveTotalCard(self,TotalCard):
@@ -51,4 +53,23 @@ class DDZTable(object):
         
     def receiveTableInfo(self,TableInfo):
         self.bTableInfo.parse(TableInfo)
+    
+    def clear(self):
+        logger.info('ddztable clear.')
+        self.bTotalCard.clear()
+        self.bTableCard.clear()
+        self.bBackCard.clear()
+        for i in range(len(self.bPlayerList)):
+            self.bPlayerList[i].clear()
+        self.isstarted = False
+        self.tableid = 0
+    
+    def startTable(self,tableid):
+        logger.info('ddztable startTable with tableid:' + str(tableid))
+        self.tableid = tableid
+        self.isstarted = True
+
+#ddztable = DDZTable()
+#ddztable.clear()
+        
         

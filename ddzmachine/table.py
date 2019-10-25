@@ -13,3 +13,7 @@ class TableInfo(object):
         
     def parse(self,TableInfo):
         return
+    
+    def clear(self):
+        self.bTableScore = 0
+        self.bTableBome = 0

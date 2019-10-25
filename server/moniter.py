@@ -10,7 +10,7 @@ import sys
 sys.path.append("..") 
 
 import logger
-
+from enum import Enum
 import _thread
 import threading
 import datetime
@@ -18,6 +18,7 @@ import time
 import os
 import copy;
 import queue
+from ddzmachine.ddztable import DDZTable
 from threading import Lock
 mutex=Lock()
 
@@ -26,6 +27,12 @@ NOISE_TYPE_WORD = '--noise_type=adaptive-param_0.2,normal_0.1'
 
 global DDPG_RUN_STR
 DDPG_RUN_STR = '--alg=ddpg --env=wordgame --play '
+
+class GameActionID(Enum):
+    #启动斗地主的游戏
+    DDZ_START_GAME = 1
+    #关闭斗地主的游戏
+    DDZ_END_GAME = 2
 
     
 
@@ -46,6 +53,9 @@ class MoniterProcess(threading.Thread):
         self.isacceted = False
         self.os_id = 0
         self.params = queue.LifoQueue()
+        self.tableid = 0
+        self.ddztable = DDZTable()
+#        self.ddztable.clear()
         
     def run(self):                   #把要执行的代码写到run函数里面 线程在创建后会直接运行run函数 
         print('Starting thread' + self.name)
@@ -73,10 +83,31 @@ class MoniterProcess(threading.Thread):
         logger.info('doAction start.')
         for i in range(self.params.qsize()):
             param = self.params.get()
-            logger.info('doAction param:' + str(param))
+            self.parseaction(param)
         self.isacceted = False
         logger.info('doAction end.')
         mutex.release()
+    
+    def parseaction(self,param):
+        try :
+            logger.info('moniterProcess parseaction param:' + str(param))
+            json_ret = {}
+            action_id = int(param['action_id'])
+            logger.info('moniterProcess parseaction action_id:' + str(action_id))
+            if action_id == int(GameActionID.DDZ_START_GAME.value):
+                self.ddztable.startTable(self.tableid)
+            elif action_id == int(GameActionID.DDZ_END_GAME.value):
+                self.ddztable.clear()
+                
+            
+        except Exception as e:
+            logger.info('parseaction except:', e)
+            json_ret = {
+                    'retcode' : -1,
+                    'errormsg' : str(e)
+                    }
+        return json_ret
+
     
     def acceptparam(self,param):
         self.isacceted = True
@@ -101,11 +132,7 @@ class Moniter(object):
         datatime_form  = datetime.datetime.now().strftime("wordgame-%Y-%m-%d-%H-%M-%S-%f")
         model_file = './models/model_' + datatime_form + '_' + str(reward_type) + '_' + str(process_id)
         log_file = './logs/log_' + datatime_form + '_' + str(reward_type) + '_' + str(process_id)
-#        assert_file = '../assert/' + assert_file
-#        if os.path.exists(assert_file) == False:
-#            logger.info('assert_file is not exists:' + str(assert_file))
-#            return False
-        
+
         # 创建新线程
         moniter_process = MoniterProcess(process_id,'moniter_' + str(process_id),reward_type,process_id,reward_type,'1e6',log_file,model_file)
         self.processdic[process_id] = moniter_process

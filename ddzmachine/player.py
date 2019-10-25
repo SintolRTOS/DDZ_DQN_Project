@@ -104,13 +104,23 @@ ST_ORDER					=0									#大小排序
 ST_COUNT					=1									#数目排序
 
 class Player(object):
-    def __init__(self):
+    def __init__(self,bpos):
         super(Player,self).__init__()
         self.bPlayerCard = []
         self.bPlayerType = PlayerType.NORMAL.value
         self.bTotalCardCount = 0
         self.bHandCardCount= 0
         self.bSendCardCount = 0
+        self.playerpos = bpos
+        self.bPlayerSendCard = []
+    
+    def clear(self):
+        self.bPlayerCard = []
+        self.bPlayerType = PlayerType.NORMAL.value
+        self.bTotalCardCount = 0
+        self.bHandCardCount= 0
+        self.bSendCardCount = 0
+        self.playerpos = 0
         self.bPlayerSendCard = []
     
     def parse(self,PlayerInfo):
@@ -430,7 +440,31 @@ class Player(object):
         
         return
     
-    
+    #删除牌
+    def removeCard(cbRemoveCard,cbRemoveCount,cbCardData,cbCardCount):
+        #检验数据
+        if cbRemoveCount<=cbCardCount:
+            return False
+        cbDeleteCount=0
+        cbTempCardData = [None] * MAX_COUNT
+        if cbCardCount > len(cbTempCardData):
+            return False
+        #置零扑克
+        for i in range(cbRemoveCount):
+            for j in range(cbCardCount):
+                if cbRemoveCard[i]==cbTempCardData[j]:
+                    cbDeleteCount+=1
+                    cbTempCardData[j]=0
+                    break
+        if cbDeleteCount!=cbRemoveCount:
+            return False
+        #清理扑克
+        cbCardPos=0
+        for i in range(cbCardCount):
+            if cbTempCardData[i]!=0:
+                cbCardData[cbCardPos]=cbTempCardData[i]
+                cbCardPos+=1
+        return True
                     
         
     
@@ -441,7 +475,7 @@ class Player(object):
         
         #构造扑克
         cbCardData = [None] * MAX_COUNT
-        cbCardCount=cbHandCardCount
+        cbCardCount = cbHandCardCount
         cbCardData = cbHandCardData.copy()
         
         #排列扑克
@@ -492,8 +526,264 @@ class Player(object):
                     cbIndex=(AnalyseResult.cbDoubleCount-i-1)*2
                     if self.getCardLogicValue(AnalyseResult.cbDoubleCardData[cbIndex])>cbLogicValue:
                         #设置结果
+                        OutCardResult.cbCardCount=cbTurnCardCount
                         for n in range(cbTurnCardCount):
                             OutCardResult.cbResultCard[n] = AnalyseResult.cbDoubleCardData[cbIndex+n]
                         return True
             
+            #寻找三牌
+            if cbTurnCardCount <= 3:
+                for i in range(AnalyseResult.cbThreeCount):
+                    cbIndex=(AnalyseResult.cbThreeCount-i-1)*3
+                    if self.getCardLogicValue(AnalyseResult.cbThreeCardData[cbIndex])>cbLogicValue:
+                        #设置结果
+                        OutCardResult.cbCardCount=cbTurnCardCount
+                        for n in range(cbTurnCardCount):
+                            OutCardResult.cbResultCard[n] = AnalyseResult.cbThreeCardData[cbIndex+n]
+                        return True
+        elif cbTurnOutType == CT_SINGLE_LINE:
+            #长度判断
+            if cbCardCount >= cbTurnCardCount:
+                #获取数值
+                cbLogicValue=self.getCardLogicValue(cbTurnCardData[0])
+                #搜索连牌
+                for i in range(cbTurnCardCount-1,cbCardCount):
+                    #获取数值
+                    cbHandLogicValue=self.getCardLogicValue(cbCardData[cbCardCount-i-1])
+                    #构造判断
+                    if cbHandLogicValue>=15:
+                        break
+                    if cbHandLogicValue<=cbLogicValue:
+                        continue
+                    
+                    #搜索连牌
+                    cbLineCount = 0
+                    for j in range(cbCardCount-i-1,cbCardCount):
+                        if (self.getCardLogicValue(cbCardData[j])+cbLineCount)==cbHandLogicValue:
+                            #增加连数
+                            OutCardResult.cbResultCard[cbLineCount]=cbCardData[j]
+                            cbLineCount+=1
+                            #完成判断
+                            if cbLineCount==cbTurnCardCount:
+                                OutCardResult.cbCardCount=cbTurnCardCount;
+                                return True;
+        elif cbTurnOutType == CT_DOUBLE_LINE:
+            #长度判断
+            if cbCardCount >= cbTurnCardCount:
+                #获取数值
+                cbLogicValue=self.getCardLogicValue(cbTurnCardData[0])
+                #搜索连牌
+                for i in range(cbTurnCardCount-1,cbCardCount):
+                    #获取数值
+                    cbHandLogicValue=self.getCardLogicValue(cbCardData[cbCardCount-i-1])
+                    #构造判断
+                    if cbHandLogicValue<=cbLogicValue:
+                        continue
+                    if (cbTurnCardCount>1) and (cbHandLogicValue>=15):
+                        break
+                    #搜索连牌
+                    cbLineCount=0
+                    for j in range(cbCardCount-i-1,cbCardCount-1):
+                        if ((self.getCardLogicValue(cbCardData[j])+cbLineCount)==cbHandLogicValue) and ((self.getCardLogicValue(cbCardData[j+1])+cbLineCount)==cbHandLogicValue):
+                            #增加连数
+                            OutCardResult.cbResultCard[cbLineCount*2]=cbCardData[j]
+                            OutCardResult.cbResultCard[cbLineCount*2+1]=cbCardData[j+1]
+                            cbLineCount+=1
+                            #完成判断
+                            if cbLineCount*2==cbTurnCardCount:
+                                OutCardResult.cbCardCount=cbTurnCardCount
+                                return True
+        elif cbTurnOutType==CT_THREE_LINE or cbTurnOutType==CT_THREE_LINE_TAKE_ONE or cbTurnOutType==CT_THREE_LINE_TAKE_TWO:
+            #长度判断
+            if cbCardCount >= cbTurnCardCount:
+                #获取数值
+                cbLogicValue=0
+                for i in range(cbTurnCardCount-2):
+                    cbLogicValue = self.getCardLogicValue(cbTurnCardData[i])
+                    if self.getCardLogicValue(cbTurnCardData[i+1])!=cbLogicValue:
+                        continue
+                    if self.getCardLogicValue(cbTurnCardData[i+2])!=cbLogicValue:
+                        continue
+                
+                #属性数值
+                cbTurnLineCount=0
+                if cbTurnOutType==CT_THREE_LINE_TAKE_ONE:
+                    cbTurnLineCount=cbTurnCardCount/4
+                elif cbTurnOutType==CT_THREE_LINE_TAKE_TWO:
+                    cbTurnLineCount=cbTurnCardCount/5
+                else:
+                    cbTurnLineCount=cbTurnCardCount/3
+                #搜索连牌
+                for i in range(cbTurnLineCount*3-1,cbCardCount):
+                    #获取数值
+                    cbHandLogicValue=self.getCardLogicValue(cbCardData[cbCardCount-i-1])
+                    #构造判断
+                    if cbHandLogicValue<=cbLogicValue:
+                        continue
+                    if (cbTurnLineCount>1) and (cbHandLogicValue>=15):
+                        break
+                    
+                    #搜索连牌
+                    cbLineCount=0
+                    for j in range(cbCardCount-i-1,cbCardCount-2):
+                        #设置变量
+                        OutCardResult.cbCardCount=0
+                        #三牌判断
+                        if (self.getCardLogicValue(cbCardData[j])+cbLineCount)!=cbHandLogicValue:
+                            continue
+                        if (self.getCardLogicValue(cbCardData[j+1])+cbLineCount)!=cbHandLogicValue:
+                            continue
+                        if (self.getCardLogicValue(cbCardData[j+2])+cbLineCount)!=cbHandLogicValue:
+                            continue
+                        
+                        #增加连数
+                        OutCardResult.cbResultCard[cbLineCount*3]=cbCardData[j]
+                        OutCardResult.cbResultCard[cbLineCount*3+1]=cbCardData[j+1]
+                        OutCardResult.cbResultCard[cbLineCount*3+2]=cbCardData[j+2]
+                        cbLineCount+=1
+                        
+                        #完成判断
+                        if cbLineCount == cbTurnLineCount:
+                            #连牌设置
+                            OutCardResult.cbCardCount=cbLineCount*3
+                            #构造扑克
+                            cbLeftCount=cbCardCount-OutCardResult.cbCardCount
+                            cbLeftCardData = cbCardData.copy()
+                            self.removeCard(OutCardResult.cbResultCard,OutCardResult.cbCardCount,cbLeftCardData,cbCardCount)
+                        #分析扑克
+                        AnalyseResultLeft = tagAnalyseResult()
+                        self.analysebCardData(cbLeftCardData,cbLeftCount,AnalyseResultLeft)
+                        #单牌处理
+                        if cbTurnOutType == CT_THREE_LINE_TAKE_ONE:
+                            #提取单牌
+                            for k in range(AnalyseResultLeft.cbSignedCount):
+                                #中止判断
+                                if OutCardResult.cbCardCount==cbTurnCardCount:
+                                    break
+                                #设置扑克
+                                cbIndex=AnalyseResultLeft.cbSignedCount-k-1
+                                cbSignedCard=AnalyseResultLeft.cbSignedCardData[cbIndex]
+                                OutCardResult.cbResultCard[OutCardResult.cbCardCount]=cbSignedCard
+                                OutCardResult.cbCardCount+=1
+                            #提取对牌
+                            for k in range(AnalyseResultLeft.cbDoubleCount*2):
+                                #终止判断
+                                if OutCardResult.cbCardCount==cbTurnCardCount:
+                                    break
+                                #设置扑克
+                                cbIndex=(AnalyseResultLeft.cbDoubleCount*2-k-1)
+                                cbSignedCard=AnalyseResultLeft.cbDoubleCardData[cbIndex]
+                                OutCardResult.cbResultCard[OutCardResult.cbCardCount]=cbSignedCard
+                                OutCardResult.cbCardCount+=1
+                            #提取三牌
+                            for k in range(AnalyseResultLeft.cbThreeCount*3):
+                                #终止判断
+                                if OutCardResult.cbCardCount==cbTurnCardCount:
+                                    break
+                                #设置扑克
+                                cbIndex=(AnalyseResultLeft.cbThreeCount*3-k-1)
+                                cbSignedCard=AnalyseResultLeft.cbThreeCardData[cbIndex]
+                                OutCardResult.cbResultCard[OutCardResult.cbCardCount]=cbSignedCard
+                                OutCardResult.cbCardCount+=1
+                            #提取四牌
+                            for k in range(AnalyseResultLeft.cbFourCount*4):
+                                #中止判断
+                                if OutCardResult.cbCardCount==cbTurnCardCount:
+                                    break
+                                #设置扑克
+                                cbIndex=(AnalyseResultLeft.cbFourCount*4-k-1)
+                                cbSignedCard=AnalyseResultLeft.cbFourCardData[cbIndex]
+                                OutCardResult.cbResultCard[OutCardResult.cbCardCount]=cbSignedCard
+                                OutCardResult.cbCardCount+=1
+
+                        #对牌处理
+                        elif cbTurnOutType == CT_THREE_LINE_TAKE_TWO:
+                            #提取对牌
+                            for k in range(AnalyseResultLeft.cbDoubleCount):
+                                #中止判断
+                                if OutCardResult.cbCardCount==cbTurnCardCount:
+                                    break
+                                #设置扑克
+                                cbIndex=(AnalyseResultLeft.cbDoubleCount-k-1)*2
+                                cbCardData1=AnalyseResultLeft.cbDoubleCardData[cbIndex]
+                                cbCardData2=AnalyseResultLeft.cbDoubleCardData[cbIndex+1]
+                                OutCardResult.cbResultCard[OutCardResult.cbCardCount]=cbCardData1
+                                OutCardResult.cbCardCount+=1
+                                OutCardResult.cbResultCard[OutCardResult.cbCardCount]=cbCardData2
+                                OutCardResult.cbCardCount+=1
+                            
+                            #提取三牌
+                            for k in range(AnalyseResultLeft.cbThreeCount):
+                                #终止判断
+                                if OutCardResult.cbCardCount==cbTurnCardCount:
+                                    break
+                                #设置扑克
+                                cbIndex=(AnalyseResultLeft.cbFourCount-k-1)*4
+                                cbCardData1=AnalyseResultLeft.cbFourCardData[cbIndex]
+                                cbCardData2=AnalyseResultLeft.cbThreeCardData[cbIndex+1]
+                                OutCardResult.cbResultCard[OutCardResult.cbCardCount]=cbCardData1
+                                OutCardResult.cbCardCount+=1
+                                OutCardResult.cbResultCard[OutCardResult.cbCardCount]=cbCardData2
+                                OutCardResult.cbCardCount+=1
+                            
+                            #提取四牌
+                            for k in range(AnalyseResultLeft.cbFourCount):
+                                #中止判断
+                                if OutCardResult.cbCardCount==cbTurnCardCount:
+                                    break
+                                #设置扑克
+                                cbIndex=(AnalyseResultLeft.cbFourCount-k-1)*4
+                                cbCardData1=AnalyseResultLeft.cbFourCardData[cbIndex]
+                                cbCardData2=AnalyseResultLeft.cbFourCardData[cbIndex+1]
+                                OutCardResult.cbResultCard[OutCardResult.cbCardCount]=cbCardData1
+                                OutCardResult.cbCardCount+=1
+                                OutCardResult.cbResultCard[OutCardResult.cbCardCount]=cbCardData2
+                                OutCardResult.cbCardCount+=1
+                                
+                        #完成判断
+                        if OutCardResult.cbCardCount==cbTurnCardCount:
+                            return True
+                        
+        #搜索炸弹
+        if cbCardCount>=4 and cbTurnOutType!=CT_MISSILE_CARD:
+            #变量定义
+            cbLogicValue=0
+            if cbTurnOutType==CT_BOMB_CARD:
+                cbLogicValue=self.getCardLogicValue(cbTurnCardData[0])
+            #搜索炸弹
+            for i in range(3,cbCardCount):
+                #获取数值
+                cbHandLogicValue=self.getCardLogicValue(cbCardData[cbCardCount-i-1])
+                #构造判断
+                cbHandLogicValue<=cbLogicValue
+                #炸弹判断
+                cbTempLogicValue=self.getCardLogicValue(cbCardData[cbCardCount-i-1])
+                j=1
+                for j in range(1,4):
+                    if self.getCardLogicValue(cbCardData[cbCardCount+j-i-1])!=cbTempLogicValue:
+                        break
+                if j != 4:
+                    continue
+                #设置结果
+                OutCardResult.cbCardCount=4
+                OutCardResult.cbResultCard[0]=cbCardData[cbCardCount-i-1]
+                OutCardResult.cbResultCard[1]=cbCardData[cbCardCount-i]
+                OutCardResult.cbResultCard[2]=cbCardData[cbCardCount-i+1]
+                OutCardResult.cbResultCard[3]=cbCardData[cbCardCount-i+2]
+                return True
         
+        #搜索火箭
+        if cbCardCount>=2 and cbCardData[0]==0x4F and cbCardData[1]==0x4E:
+            #设置结果
+            OutCardResult.cbCardCount=2
+            OutCardResult.cbResultCard[0]=cbCardData[0]
+            OutCardResult.cbResultCard[1]=cbCardData[1]
+            return True
+        
+        return False
+
+                        
+#player = Player(0)
+#player.clear()                                
+                                
+                                
