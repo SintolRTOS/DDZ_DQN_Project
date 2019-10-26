@@ -114,6 +114,9 @@ class Player(object):
         self.playerpos = bpos
         self.bPlayerSendCard = []
     
+    def getpos(self):
+        return self.playerpos
+    
     def clear(self):
         self.bPlayerCard = []
         self.bPlayerType = PlayerType.NORMAL.value
@@ -130,6 +133,15 @@ class Player(object):
         self.bHandCardCount = PlayerInfo.bHandCardCount
         self.bSendCardCount = PlayerInfo.bSendCardCount
         self.bPlayerSendCard = PlayerInfo.bPlayerSendCard
+    
+    def sub_s_sendcard(self,playercard):
+        logger.info('Player:' + str(self.playerpos) +  ',sub_s_send_card:' + str(playercard))
+        self.bPlayerCard.clear()
+        for i in range(MAX_COUNT):
+            cardindex = 'card_' + str(i)
+            card_value = playercard[cardindex]
+            logger.debug('parse card value:'+str(card_value))
+            self.bPlayerCard.append(card_value)
         
     def getCardLogicValue(self,cbCardData):
         #计算扑克属性

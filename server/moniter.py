@@ -33,6 +33,13 @@ class GameActionID(Enum):
     DDZ_START_GAME = 1
     #关闭斗地主的游戏
     DDZ_END_GAME = 2
+    #游戏服务器命令结构
+    SUB_S_SEND_CARD				=100									#发牌命令
+    SUB_S_LAND_SCORE			=101									#叫分命令
+    SUB_S_GAME_START			=102									#游戏开始
+    SUB_S_OUT_CARD				=103									#用户出牌
+    SUB_S_PASS_CARD				=104									#放弃出牌
+    SUB_S_GAME_END				=105									#游戏结束
 
     
 
@@ -96,8 +103,13 @@ class MoniterProcess(threading.Thread):
             logger.info('moniterProcess parseaction action_id:' + str(action_id))
             if action_id == int(GameActionID.DDZ_START_GAME.value):
                 self.ddztable.startTable(self.tableid)
+                self.tableid+=1
+                json_ret['retcode'] = 1
             elif action_id == int(GameActionID.DDZ_END_GAME.value):
                 self.ddztable.clear()
+                json_ret['retcode'] = 1
+            elif action_id == int(GameActionID.SUB_S_SEND_CARD.value):
+                self.ddztable.sub_s_send_card(param)
                 
             
         except Exception as e:
@@ -148,6 +160,7 @@ class Moniter(object):
             retinfo['isstarted'] = isstarted
             retinfo['run_process'] = run_process
             retinfo['os_id'] = os_id
+            retinfo['retcode'] = 1
             mutex.release()
             return retinfo  
         mutex.release()
@@ -169,7 +182,8 @@ class Moniter(object):
                 retinfo['isstarted'] = isstarted
                 retinfo['run_process'] = run_process
                 retinfo['os_id'] = os_id
-                retinfo['param'] = param    
+                retinfo['param'] = param
+                retinfo['retcode'] = 1
                 
         mutex.release()
         return retinfo 
@@ -185,6 +199,7 @@ class Moniter(object):
             retinfo['isstarted'] = isstarted
             retinfo['run_process'] = run_process
             retinfo['os_id'] = os_id
+            retinfo['retcode'] = 1
             mutex.release()
             return retinfo  
         mutex.release()

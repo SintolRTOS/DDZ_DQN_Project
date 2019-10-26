@@ -14,6 +14,7 @@ from ddzmachine.table import TableInfo
 
 TOTAL_CARD_COUNT = 54
 TOTAL_PLAYER_COUNT = 3
+TOTAL_BACKCARD_COUNT = 3
 
 class DDZTable(object):
     def __init__(self):
@@ -28,6 +29,7 @@ class DDZTable(object):
         self.bTableInfo = TableInfo()
         self.isstarted = False
         self.tableid = 0
+        self.curpos = 0
         
 
     def receiveTotalCard(self,TotalCard):
@@ -35,6 +37,37 @@ class DDZTable(object):
     
     def receiveTableCard(self,Card):
         self.bTableCard.append(Card)
+    
+    def getplayer(self,bpos):
+        for i in range(TOTAL_PLAYER_COUNT):
+            player = self.bPlayerList[i]
+            if player.getpos() == bpos:
+                return player
+        return None
+                
+    
+    def sub_s_send_card(self,param):
+        logger.info('DDZTable sub_s_send_card:' + str(param))
+        backcard = param['backcard']
+        curpos = param['curpos']
+        players = param['players']
+        #获得数值底牌
+        self.bBackCard.clear()
+        for i in range(TOTAL_BACKCARD_COUNT):
+            value = backcard[str(i)]
+            self.bBackCard.append(value)
+        #保存当前位置
+        self.curpos = curpos
+        for i in range(TOTAL_PLAYER_COUNT):
+            player_index = 'player_' + str(i)
+            playerinfo = players[player_index]
+            player_pos = playerinfo['bpos']
+            player = self.getplayer(player_pos)
+            if player is not None:
+                player.sub_s_sendcard(playerinfo)
+            
+        
+        
     
     def receivePlayerInfo(self,PlayerInfo):
         logger.info('receivePlayerInfo:' + str(PlayerInfo))
@@ -63,6 +96,7 @@ class DDZTable(object):
             self.bPlayerList[i].clear()
         self.isstarted = False
         self.tableid = 0
+        self.curpos = 0
     
     def startTable(self,tableid):
         logger.info('ddztable startTable with tableid:' + str(tableid))
