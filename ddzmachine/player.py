@@ -102,6 +102,7 @@ MASK_VALUE					=0x0F								#数值掩码
 #排序类型
 ST_ORDER					=0									#大小排序
 ST_COUNT					=1									#数目排序
+BACKCARD_COUNT              =3                                  #底牌的数量
 
 class Player(object):
     def __init__(self,bpos):
@@ -126,6 +127,17 @@ class Player(object):
         self.playerpos = 0
         self.bPlayerSendCard = []
     
+    def setland(self):
+        self.bPlayerType = PlayerType.LANLORD.value
+    
+    def setfarmer(self):
+        self.bPlayerType = PlayerType.FARMER.value
+    
+    def add_backcard(self,backcard):
+        for i in range(BACKCARD_COUNT):
+            value = backcard[str(i)]
+            self.bPlayerCard.append(value)
+    
     def parse(self,PlayerInfo):
         self.bPlayerCard = PlayerInfo.bPlayerCard
         self.bPlayerType = PlayerInfo.bPlayerType
@@ -133,6 +145,16 @@ class Player(object):
         self.bHandCardCount = PlayerInfo.bHandCardCount
         self.bSendCardCount = PlayerInfo.bSendCardCount
         self.bPlayerSendCard = PlayerInfo.bPlayerSendCard
+        self.bPlayerType = PlayerType.FARMER.value
+    
+    def sub_s_out_card(self,card_count,card_data):
+        bSourceCount = self.bHandCardCount
+        self.bHandCardCount-=card_count
+        self.removeCard(card_data,card_count,self.bPlayerCard,bSourceCount)
+        self.sortCardList(self.bPlayerCard,self.bHandCardCount,ST_ORDER)
+        
+        
+        
     
     def sub_s_sendcard(self,playercard):
         logger.info('Player:' + str(self.playerpos) +  ',sub_s_send_card:' + str(playercard))

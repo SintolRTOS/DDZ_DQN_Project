@@ -65,9 +65,63 @@ class DDZTable(object):
             player = self.getplayer(player_pos)
             if player is not None:
                 player.sub_s_sendcard(playerinfo)
-            
+                
+    #处理游戏开始            
+    def sub_s_game_start(self,param):
+        logger.info('DDZTable sub_s_game_start:' + str(param))
+        land_user = param['land_user']
+        land_score = param['land_score']
+        cur_user = param['cur_user']
+        back_card = param['back_card']
+        self.bTableInfo.setlanduser(land_user)
+        self.bTableInfo.setlandscore(land_score)
+        self.bTableInfo.setcuruser(cur_user)
+        self.curpos = cur_user
+        #获得数值底牌
+        self.bBackCard.clear()
+        for i in range(TOTAL_BACKCARD_COUNT):
+            value = back_card[str(i)]
+            self.bBackCard.append(value)
         
-        
+        land_player = self.getplayer(land_user)
+        if land_player is not None:
+            land_player.setland()
+            land_player.add_backcard(back_card)
+        return True
+    
+    #处理过牌的逻辑
+    def sub_s_pass_card(self,param):
+        logger.info('DDZTable sub_s_pass_card:' + str(param))
+        new_turn = param['new_turn']
+#        pass_user = param['pass_user']
+        cur_user = param['cur_user']
+        if new_turn == True:
+            self.bTableInfo.newturn()
+        self.curpos = cur_user
+                      
+    #处理游戏出牌
+    def sub_s_out_card(self,param):
+        logger.info('DDZTable sub_s_out_card:' + str(param))
+        card_count = param['card_count']
+        cur_user = param['cur_user']
+        out_card_user = param['out_card_user']
+        card_data = param['card_data']
+        card_info = []
+        for i in range(card_count):
+            value = card_data[str(i)]
+            self.bTableCard.append(value)
+            card_info.append(value)
+        self.bTableInfo.setoutcard(out_card_user,card_count,card_info)
+        player = self.getplayer(out_card_user)
+        if player is not None:
+            player.sub_s_out_card(card_count,card_info)
+        self.curpos = cur_user
+        return True
+    
+    def sub_s_land_score(self,param):
+        logger.info('DDZTable sub_s_land_score:' + str(param))
+        self.receiveTableInfo(param)
+        return True
     
     def receivePlayerInfo(self,PlayerInfo):
         logger.info('receivePlayerInfo:' + str(PlayerInfo))
@@ -84,14 +138,15 @@ class DDZTable(object):
     def receiveBackCard(self,BackCard):
         self.bBackCard = BackCard
         
-    def receiveTableInfo(self,TableInfo):
-        self.bTableInfo.parse(TableInfo)
+    def receiveTableInfo(self,params):
+        self.bTableInfo.parse(params)
     
     def clear(self):
         logger.info('ddztable clear.')
         self.bTotalCard.clear()
         self.bTableCard.clear()
         self.bBackCard.clear()
+        self.bTableInfo.clear()
         for i in range(len(self.bPlayerList)):
             self.bPlayerList[i].clear()
         self.isstarted = False
