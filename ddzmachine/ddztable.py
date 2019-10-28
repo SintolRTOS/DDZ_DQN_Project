@@ -112,7 +112,10 @@ class DDZTable(object):
             self.bTableCard.append(value)
             card_info.append(value)
         self.bTableInfo.setoutcard(out_card_user,card_count,card_info)
+        logger.debug('DDZTable sub_s_out_card out_card_user:' + str(out_card_user))
+        logger.debug('DDZTable sub_s_out_card bPlayerList:' + str(self.bPlayerList))
         player = self.getplayer(out_card_user)
+        logger.debug('DDZTable sub_s_out_card player:' + str(player))
         if player is not None:
             player.sub_s_out_card(card_count,card_info)
         self.curpos = cur_user

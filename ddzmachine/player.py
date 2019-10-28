@@ -37,7 +37,7 @@ class tagOutCardResult(object):
         self.cbCardCount = 0                         #扑克数目
         self.cbResultCard = [None] * MAX_COUNT       #结果扑克
     
-    def zero():
+    def zero(self):
         self.cbCardCount = 0                         #扑克数目
         self.cbResultCard = [None] * MAX_COUNT       #结果扑克
 
@@ -107,7 +107,7 @@ BACKCARD_COUNT              =3                                  #底牌的数量
 class Player(object):
     def __init__(self,bpos):
         super(Player,self).__init__()
-        self.bPlayerCard = []
+        self.bPlayerCard = [None] * MAX_COUNT
         self.bPlayerType = PlayerType.NORMAL.value
         self.bTotalCardCount = 0
         self.bHandCardCount= 0
@@ -119,12 +119,12 @@ class Player(object):
         return self.playerpos
     
     def clear(self):
-        self.bPlayerCard = []
+        self.bPlayerCard = [None] * MAX_COUNT
         self.bPlayerType = PlayerType.NORMAL.value
         self.bTotalCardCount = 0
         self.bHandCardCount= 0
         self.bSendCardCount = 0
-        self.playerpos = 0
+#        self.playerpos = 0
         self.bPlayerSendCard = []
     
     def setland(self):
@@ -136,7 +136,10 @@ class Player(object):
     def add_backcard(self,backcard):
         for i in range(BACKCARD_COUNT):
             value = backcard[str(i)]
-            self.bPlayerCard.append(value)
+            self.bPlayerCard[self.bHandCardCount] = value
+            self.bHandCardCount += 1
+            self.bTotalCardCount += 1
+            logger.debug('add_backcard card value:'+str(self.bHandCardCount))
     
     def parse(self,PlayerInfo):
         self.bPlayerCard = PlayerInfo.bPlayerCard
@@ -149,21 +152,26 @@ class Player(object):
     
     def sub_s_out_card(self,card_count,card_data):
         bSourceCount = self.bHandCardCount
-        self.bHandCardCount-=card_count
+        self.bHandCardCount -= card_count
+        self.bSendCardCount += card_count
         self.removeCard(card_data,card_count,self.bPlayerCard,bSourceCount)
         self.sortCardList(self.bPlayerCard,self.bHandCardCount,ST_ORDER)
-        
-        
         
     
     def sub_s_sendcard(self,playercard):
         logger.info('Player:' + str(self.playerpos) +  ',sub_s_send_card:' + str(playercard))
-        self.bPlayerCard.clear()
+        self.bHandCardCount = 0
+        self.bTotalCardCount = 0
+        self.bPlayerCard = [None] * MAX_COUNT
         for i in range(MAX_COUNT):
             cardindex = 'card_' + str(i)
             card_value = playercard[cardindex]
             logger.debug('parse card value:'+str(card_value))
-            self.bPlayerCard.append(card_value)
+            self.bPlayerCard[i] = card_value
+            if card_value != 0:
+                self.bHandCardCount += 1
+                logger.debug('parse card bHandCardCount:'+str(self.bHandCardCount))
+                self.bTotalCardCount += 1
         
     def getCardLogicValue(self,cbCardData):
         #计算扑克属性
@@ -423,6 +431,7 @@ class Player(object):
     
     #排列扑克
     def sortCardList(self,cbCardData,cbCardCount,cbSortType):
+        logger.debug('player sortCardList:'+str(cbCardData) + ',' + str(cbCardCount) + ',' + str(cbSortType))
         #数目过虑
         if cbCardCount==0:
             return
@@ -431,10 +440,14 @@ class Player(object):
         cbSortValue = [None] * MAX_COUNT
         for i in range(cbCardCount):
             cbSortValue[i] = self.getCardLogicValue(cbCardData[i])
-            
+        
+        logger.debug('player sortCardList cbSortValue:'+str(cbSortValue))
+        
         #排序操作
         bSorted=False
-        cbThreeCount,cbLast = cbCardCount - 1
+        cbThreeCount = 0
+        cbLast = cbCardCount - 1
+        logger.debug('player sortCardList cbThreeCount,cbLast:'+str(cbThreeCount) + ',' + str(cbLast))
         while bSorted is False:
             bSorted = True
             for i in range(cbLast):
@@ -449,6 +462,7 @@ class Player(object):
                     bSorted=False
             cbLast-=1
         
+        logger.debug('player sortCardList cbSortValue2:'+str(cbSortValue))
         #数目排序
         if cbSortType == ST_COUNT:
             #分析扑克
@@ -475,14 +489,16 @@ class Player(object):
         return
     
     #删除牌
-    def removeCard(cbRemoveCard,cbRemoveCount,cbCardData,cbCardCount):
+    def removeCard(self,cbRemoveCard,cbRemoveCount,cbCardData,cbCardCount):
         #检验数据
-        if cbRemoveCount<=cbCardCount:
+        logger.debug('player removeCard:'+str(cbRemoveCard) + ',' + str(cbRemoveCount) + ',' + str(cbCardData) + ',' + str(cbCardCount))
+        if cbRemoveCount > cbCardCount:
             return False
         cbDeleteCount=0
-        cbTempCardData = [None] * MAX_COUNT
+        cbTempCardData = cbCardData.copy()
         if cbCardCount > len(cbTempCardData):
             return False
+        logger.debug('player removeCard cbTempCardData:'+str(cbTempCardData))
         #置零扑克
         for i in range(cbRemoveCount):
             for j in range(cbCardCount):
@@ -498,6 +514,7 @@ class Player(object):
             if cbTempCardData[i]!=0:
                 cbCardData[cbCardPos]=cbTempCardData[i]
                 cbCardPos+=1
+        logger.debug('player removeCard result:'+str(cbCardData))
         return True
                     
         
@@ -818,6 +835,11 @@ class Player(object):
 
                         
 #player = Player(0)
-#player.clear()                                
-                                
+#player.clear()
+#test
+#cbCardData=[1,2,3,4,5,6,7,8,9,10]
+#cbCardCount = 11
+#cbTempCardData = cbCardData.copy()
+#if cbCardCount > len(cbTempCardData):
+#    print('test ok!')
                                 
