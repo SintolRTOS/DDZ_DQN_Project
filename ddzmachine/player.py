@@ -33,7 +33,6 @@ NORMAL_COUNT				=17									#常规数目
 #出牌的结果
 class tagOutCardResult(object):
     def __init__(self):
-        super(Player,self).__init__()
         self.cbCardCount = 0                         #扑克数目
         self.cbResultCard = [None] * MAX_COUNT       #结果扑克
     
@@ -44,7 +43,6 @@ class tagOutCardResult(object):
 #分析结构
 class tagAnalyseResult(object):
     def __init__(self):
-        super(Player,self).__init__()
         self.cbEightCount=0						#八张数目
         self.cbSevenCount=0						#七张数目
         self.cbSixCount=0					    #六张数目
@@ -186,6 +184,12 @@ class Player(object):
             return cbCardValue+13
         else:
             return cbCardValue
+    
+    def getSearchOutCard(self,bTurnCardData,bTurnCardCount):
+        logger.debug('getSearchOutCard bTurnCardData bTurnCardCount:' + str(bTurnCardData) + ',' + str(bTurnCardCount))
+        out_card_result = tagOutCardResult()
+        self.searchOutCard(self.bPlayerCard,self.bHandCardCount,bTurnCardData,bTurnCardCount,out_card_result)
+        return out_card_result
         
         
     def getCardValue(self,cbCardData):
@@ -196,7 +200,8 @@ class Player(object):
     
     def analysebCardData(self,cbCardData,cbCardCount,AnalyseResult):
         AnalyseResult.zero()
-        for i in range(cbCardCount):
+        i = 0
+        while i < cbCardCount:
             cbSameCount = 1
             cbLogicValue = self.getCardLogicValue(cbCardData[i])
             if cbLogicValue <= 0:
@@ -208,48 +213,48 @@ class Player(object):
                 #铜牌变量变化
                 cbSameCount += 1
             #设置同牌结构
-            if cbCardCount == 1:
-                AnalyseResult.cbSignedCount += 1
+            if cbSameCount == 1:
                 cbIndex = AnalyseResult.cbSignedCount
+                AnalyseResult.cbSignedCount += 1
                 AnalyseResult.cbSignedCardData[cbIndex*cbSameCount]=cbCardData[i]
-            elif cbCardCount == 2:
-                AnalyseResult.cbDoubleCount += 1
+            elif cbSameCount == 2:
                 cbIndex = AnalyseResult.cbDoubleCount
+                AnalyseResult.cbDoubleCount += 1
                 AnalyseResult.cbDoubleCardData[cbIndex*cbSameCount]=cbCardData[i]
                 AnalyseResult.cbDoubleCardData[cbIndex*cbSameCount+1]=cbCardData[i+1]
-            elif cbCardCount == 3:
-                AnalyseResult.cbThreeCount += 1
+            elif cbSameCount == 3:
                 cbIndex = AnalyseResult.cbThreeCount
+                AnalyseResult.cbThreeCount += 1
                 AnalyseResult.cbThreeCardData[cbIndex*cbSameCount]=cbCardData[i]
                 AnalyseResult.cbThreeCardData[cbIndex*cbSameCount+1]=cbCardData[i+1]
                 AnalyseResult.cbThreeCardData[cbIndex*cbSameCount+2]=cbCardData[i+2]
-            elif cbCardCount == 4:
-                AnalyseResult.cbFourCount += 1
+            elif cbSameCount == 4:
                 cbIndex = AnalyseResult.cbFourCount
+                AnalyseResult.cbFourCount += 1
                 AnalyseResult.cbFourCardData[cbIndex*cbSameCount]=cbCardData[i]
                 AnalyseResult.cbFourCardData[cbIndex*cbSameCount+1]=cbCardData[i+1]
                 AnalyseResult.cbFourCardData[cbIndex*cbSameCount+2]=cbCardData[i+2]
                 AnalyseResult.cbFourCardData[cbIndex*cbSameCount+3]=cbCardData[i+3]
-            elif cbCardCount == 5:
-                AnalyseResult.cbFiveCount += 1
+            elif cbSameCount == 5:
                 cbIndex = AnalyseResult.cbFiveCount
+                AnalyseResult.cbFiveCount += 1
                 AnalyseResult.cbFiveCardData[cbIndex*cbSameCount]=cbCardData[i]
                 AnalyseResult.cbFiveCardData[cbIndex*cbSameCount+1]=cbCardData[i+1]
                 AnalyseResult.cbFiveCardData[cbIndex*cbSameCount+2]=cbCardData[i+2]
                 AnalyseResult.cbFiveCardData[cbIndex*cbSameCount+3]=cbCardData[i+3]
                 AnalyseResult.cbFiveCardData[cbIndex*cbSameCount+4]=cbCardData[i+4]
-            elif cbCardCount == 6:
-                AnalyseResult.cbSixCount += 1
+            elif cbSameCount == 6:
                 cbIndex = AnalyseResult.cbSixCount
+                AnalyseResult.cbSixCount += 1
                 AnalyseResult.cbSixCardData[cbIndex*cbSameCount]=cbCardData[i]
                 AnalyseResult.cbSixCardData[cbIndex*cbSameCount+1]=cbCardData[i+1]
                 AnalyseResult.cbSixCardData[cbIndex*cbSameCount+2]=cbCardData[i+2]
                 AnalyseResult.cbSixCardData[cbIndex*cbSameCount+3]=cbCardData[i+3]
                 AnalyseResult.cbSixCardData[cbIndex*cbSameCount+4]=cbCardData[i+4]
                 AnalyseResult.cbSixCardData[cbIndex*cbSameCount+5]=cbCardData[i+5]
-            elif cbCardCount == 7:
-                AnalyseResult.cbSevenCount += 1
+            elif cbSameCount == 7:
                 cbIndex = AnalyseResult.cbSevenCount
+                AnalyseResult.cbSevenCount += 1
                 AnalyseResult.cbSevenCardData[cbIndex*cbSameCount]=cbCardData[i]
                 AnalyseResult.cbSevenCardData[cbIndex*cbSameCount+1]=cbCardData[i+1]
                 AnalyseResult.cbSevenCardData[cbIndex*cbSameCount+2]=cbCardData[i+2]
@@ -257,9 +262,9 @@ class Player(object):
                 AnalyseResult.cbSevenCardData[cbIndex*cbSameCount+4]=cbCardData[i+4]
                 AnalyseResult.cbSevenCardData[cbIndex*cbSameCount+5]=cbCardData[i+5]
                 AnalyseResult.cbSevenCardData[cbIndex*cbSameCount+6]=cbCardData[i+6]
-            elif cbCardCount == 8:
-                AnalyseResult.cbEightCount += 1
+            elif cbSameCount == 8:
                 cbIndex = AnalyseResult.cbEightCount
+                AnalyseResult.cbEightCount += 1
                 AnalyseResult.cbEightCardData[cbIndex*cbSameCount]=cbCardData[i];
                 AnalyseResult.cbEightCardData[cbIndex*cbSameCount+1]=cbCardData[i+1]
                 AnalyseResult.cbEightCardData[cbIndex*cbSameCount+2]=cbCardData[i+2]
@@ -270,7 +275,7 @@ class Player(object):
                 AnalyseResult.cbEightCardData[cbIndex*cbSameCount+7]=cbCardData[i+7]
             
             #设置索引
-            i+=cbSameCount-1
+            i+=cbSameCount
         
         return True
         
@@ -286,7 +291,7 @@ class Player(object):
         elif cbCardCount == 2:
             if ((cbCardData[0]==0x4F) and (cbCardData[1]==0x4E)):
                 return CT_MISSILE_CARD
-            if (self.GetCardLogicValue(cbCardData[0])==self.GetCardLogicValue(cbCardData[1])):
+            if (self.getCardLogicValue(cbCardData[0])==self.getCardLogicValue(cbCardData[1])):
                 return CT_DOUBLE
             return CT_ERROR
         
@@ -523,16 +528,22 @@ class Player(object):
     def searchOutCard(self,cbHandCardData,cbHandCardCount,cbTurnCardData,cbTurnCardCount,OutCardResult):
         #数值清空
         OutCardResult.zero()
+        logger.debug('player searchOutCard OutCardResult:' + str(OutCardResult))
         
         #构造扑克
         cbCardData = [None] * MAX_COUNT
         cbCardCount = cbHandCardCount
         cbCardData = cbHandCardData.copy()
-        
+        logger.debug('player searchOutCard cbCardData:' + str(cbCardData))
+        logger.debug('player searchOutCard cbHandCardCount:' + str(cbHandCardCount))
         #排列扑克
         self.sortCardList(cbCardData,cbCardCount,ST_ORDER)
+        logger.debug('player searchOutCard sortCardList cbCardData:' + str(cbCardData))
         #获取类型
+        logger.debug('player searchOutCard getCardType cbTurnCardData:' + str(cbTurnCardData))
+        logger.debug('player searchOutCard getCardType cbTurnCardCount:' + str(cbTurnCardCount))
         cbTurnOutType = self.getCardType(cbTurnCardData,cbTurnCardCount)
+        logger.debug('player searchOutCard getCardType cbTurnOutType:' + str(cbTurnOutType))
         #出牌分析
         if cbTurnOutType == CT_ERROR:
             #获取数值
@@ -655,15 +666,16 @@ class Player(object):
                         continue
                     if self.getCardLogicValue(cbTurnCardData[i+2])!=cbLogicValue:
                         continue
+                    break
                 
                 #属性数值
                 cbTurnLineCount=0
                 if cbTurnOutType==CT_THREE_LINE_TAKE_ONE:
-                    cbTurnLineCount=cbTurnCardCount/4
+                    cbTurnLineCount=int(cbTurnCardCount/4)
                 elif cbTurnOutType==CT_THREE_LINE_TAKE_TWO:
-                    cbTurnLineCount=cbTurnCardCount/5
+                    cbTurnLineCount=int(cbTurnCardCount/5)
                 else:
-                    cbTurnLineCount=cbTurnCardCount/3
+                    cbTurnLineCount=int(cbTurnCardCount/3)
                 #搜索连牌
                 for i in range(cbTurnLineCount*3-1,cbCardCount):
                     #获取数值
@@ -836,7 +848,16 @@ class Player(object):
                         
 #player = Player(0)
 #player.clear()
+#bTurnCardData = [49, 45, 44, 27, 26, 41]
+#bTurnCardCount = 6
+#cbCardData = [18, 33, 29, 13, 60, 12, 43, 11, 25, 56, 24, 55, 23, 54, 6, 35, 3, 18, 60, 37]
+#cbHandCardCount = 15
+#out_card_result = tagOutCardResult()
+#player.searchOutCard(cbCardData,cbHandCardCount,bTurnCardData,bTurnCardCount,out_card_result)
+#print('out_card_result.cbCardCount：' + str(out_card_result.cbCardCount))
+#print('out_card_result.cbCardCount：' + str(out_card_result.cbResultCard))
 #test
+#out_card_result = tagOutCardResult()
 #cbCardData=[1,2,3,4,5,6,7,8,9,10]
 #cbCardCount = 11
 #cbTempCardData = cbCardData.copy()

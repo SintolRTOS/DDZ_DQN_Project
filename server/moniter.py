@@ -84,6 +84,14 @@ class MoniterProcess(threading.Thread):
                 self.doaction()
             
         self.run_process = 1.
+    
+    def get_logistic_ai_info(self):
+        if self.isstarted == False or self.iscompleted == True:
+            return None
+        retinfo = self.ddztable.get_logistic_out()
+        if retinfo == False:
+            return None
+        return retinfo
             
     def doaction(self):
         mutex.acquire()
@@ -169,6 +177,24 @@ class Moniter(object):
             retinfo['run_process'] = run_process
             retinfo['os_id'] = os_id
             retinfo['retcode'] = 1
+            mutex.release()
+            return retinfo  
+        mutex.release()
+        return None
+    
+    def getinfo_process(self,process_id,param):
+        mutex.acquire()
+        if self.processdic.__contains__(process_id):
+            process = self.processdic[process_id]
+            iscompleted,isstarted,run_process,os_id = process.get_current_process_info()
+            retinfo = {}
+            retinfo['iscompleted'] = iscompleted
+            retinfo['isstarted'] = isstarted
+            retinfo['run_process'] = run_process
+            retinfo['os_id'] = os_id
+            retinfo['retcode'] = 1
+            logistic_info = process.get_logistic_ai_info()
+            retinfo['result'] = logistic_info
             mutex.release()
             return retinfo  
         mutex.release()

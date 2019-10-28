@@ -53,9 +53,15 @@ class TableInfo(object):
         self.bTurnCardCount = card_count
         self.bTurnCardData = out_card_data.copy()
     
+    def getturncardcount(self):
+        return self.bTurnCardCount;
+    
     def newturn(self):
         self.bTurnCardCount = 0
         self.bTurnCardData.clear()
+    
+    def getturncarddata(self):
+        return self.bTurnCardData
         
         
         

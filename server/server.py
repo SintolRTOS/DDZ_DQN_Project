@@ -35,6 +35,8 @@ class ActionType(Enum):
     END_ACTION_PROCESS = 3
     #操作进程
     DO_ACTION_PROCESS = 4
+    #获取AI推荐策略
+    GET_ACTION_PROCESS = 5
 
 class DQN_Server(http.server.BaseHTTPRequestHandler):    
     
@@ -114,6 +116,13 @@ class DQN_Server(http.server.BaseHTTPRequestHandler):
             process_id = json_data['process_id']
             param = json_data['param']
             retinfo = moniterimp.do_process(process_id,param)
+            if retinfo is None:
+                action_ret['retcode'] = -1
+            action_ret['retinfo'] = retinfo
+        elif action_id == int(ActionType.GET_ACTION_PROCESS.value):
+            process_id = json_data['process_id']
+            param = json_data['param']
+            retinfo = moniterimp.getinfo_process(process_id,param)
             if retinfo is None:
                 action_ret['retcode'] = -1
             action_ret['retinfo'] = retinfo

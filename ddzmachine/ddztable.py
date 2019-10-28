@@ -11,6 +11,7 @@ sys.path.append("..")
 import logger
 from ddzmachine.player import Player
 from ddzmachine.table import TableInfo
+from ddzmachine.player import tagOutCardResult
 
 TOTAL_CARD_COUNT = 54
 TOTAL_PLAYER_COUNT = 3
@@ -44,6 +45,35 @@ class DDZTable(object):
             if player.getpos() == bpos:
                 return player
         return None
+    
+    def get_logistic_out(self):
+        if self.isstarted == False:
+            return False
+        logger.debug('get_logistic_out cur_player:' + str(self.curpos))
+        cur_player = self.getplayer(self.curpos)
+        if cur_player is None:
+            return False
+        
+        bTurnCardCount = self.bTableInfo.getturncardcount()
+        bTurnCardData = self.bTableInfo.getturncarddata()
+        result = cur_player.getSearchOutCard(bTurnCardData,bTurnCardCount)
+        if result.cbCardCount == 0:
+            retinfo = {
+                    'retcode' : 0,
+                    'errormsg' : 'I have not enable cards.'
+                    }
+            return retinfo
+        else:
+            retinfo = {}
+            retinfo['card_count'] = result.cbCardCount
+            cardlist = {}
+            for i in range(int(result.cbCardCount)):
+                index = str(i)
+                cardlist[index] = result.cbResultCard[i]
+            retinfo['card_result'] = cardlist
+            retinfo['retcode'] = 1
+            return retinfo
+        
                 
     
     def sub_s_send_card(self,param):
@@ -163,5 +193,4 @@ class DDZTable(object):
 
 #ddztable = DDZTable()
 #ddztable.clear()
-        
         
