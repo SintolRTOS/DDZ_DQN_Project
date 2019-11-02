@@ -248,3 +248,7 @@ def main(args):
 
 if __name__ == '__main__':
     main(sys.argv)
+#    height= 20
+#    width = 2
+#    obs = np.zeros((height, width, 4), dtype=np.uint8)
+#    print(str(np.array(obs)[None]))
