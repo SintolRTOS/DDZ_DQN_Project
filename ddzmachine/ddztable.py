@@ -17,6 +17,13 @@ TOTAL_CARD_COUNT = 54
 TOTAL_PLAYER_COUNT = 3
 TOTAL_BACKCARD_COUNT = 3
 
+#特征矩阵宽度
+FEATURE_MATIRX_HEIGHT = 2
+#特征矩阵高度
+FEATURE_MATRIX_WIDTH = 20
+#特征矩阵深度
+FEATURE_MATRIX_DEPTH = 6
+
 class DDZTable(object):
     def __init__(self):
         super(DDZTable,self).__init__()
@@ -31,6 +38,70 @@ class DDZTable(object):
         self.isstarted = False
         self.tableid = 0
         self.curpos = 0
+        
+    def get_playerpos_pre(self):
+        temp_pos = self.curpos - 1
+        if temp_pos < 0:
+            temp_pos = 2
+        return temp_pos
+    
+    def get_playerpos_pre_pre(self):
+        temp_pre_pos = self.get_playerpos_pre()
+        temp_pos = temp_pre_pos - 1
+        if temp_pos < 0:
+            temp_pos = 2
+        return temp_pos
+        
+        
+    def get_observation(self,_obs):
+        """create and get the RL obervation information"""
+        #create cur_player feature
+        cur_player = self.getplayer(self.curpos)
+        if cur_player is not None:
+            cur_obs = _obs[0]
+            handcard_obs = cur_obs[0]
+            outcard_obs = cur_obs[1]
+            cur_player.getfeature_handcard(handcard_obs)
+            cur_player.getfeature_outcard(outcard_obs)
+        
+        #create pre_player feature
+        pre_player_pos = self.get_playerpos_pre()
+        pre_player = self.getplayer(pre_player_pos)
+        if pre_player is not None:
+            pre_obs = _obs[1]
+            handcard_obs = pre_obs[0]
+            outcard_obs = pre_obs[1]
+            pre_player.getfeature_handcard(handcard_obs)
+            pre_player.getfeature_outcard(outcard_obs)
+        
+        #create pre_pre_player feature
+        pre_pre_player_pos = self.get_playerpos_pre_pre()
+        pre_pre_player = self.getplayer(pre_pre_player_pos)
+        if pre_pre_player is not None:
+            pre_pre_obs = _obs[2]
+            handcard_obs = pre_pre_obs[0]
+            outcard_obs = pre_pre_obs[1]
+            pre_pre_player.getfeature_handcard(handcard_obs)
+            pre_pre_player.getfeature_outcard(outcard_obs)
+        
+        #create table feature
+        table_obs = _obs[3]
+        table_outcard_obs = table_obs[0]
+        table_other_obs = table_obs[1]
+        bTurnCardCount = self.bTableInfo.getturncardcount()
+        bTurnCardData = self.bTableInfo.getturncarddata()
+        turncount = self.bTableInfo.getturncardcount()
+        land_score = self.bTableInfo.getland_score()
+        for i in range(bTurnCardCount):
+            table_outcard_obs[i] = bTurnCardData[i]
+        table_other_obs[0] = self.curpos
+        table_other_obs[1] = cur_player.getplayertype()
+        table_other_obs[2] = turncount
+        table_other_obs[3] = land_score
+        
+        
+            
+        
         
 
     def receiveTotalCard(self,TotalCard):

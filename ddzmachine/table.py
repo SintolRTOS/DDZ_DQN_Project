@@ -56,6 +56,10 @@ class TableInfo(object):
     def getturncardcount(self):
         return self.bTurnCardCount;
     
+    def getland_score(self):
+        return self.bland_score
+    
+    
     def newturn(self):
         self.bTurnCardCount = 0
         self.bTurnCardData.clear()

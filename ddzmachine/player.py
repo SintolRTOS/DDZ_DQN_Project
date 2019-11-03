@@ -112,6 +112,17 @@ class Player(object):
         self.bSendCardCount = 0
         self.playerpos = bpos
         self.bPlayerSendCard = []
+        
+    def getfeature_handcard(self,_obs):
+        """fix the feature array of the handcard"""
+        for i in range(self.bHandCardCount):
+            _obs[i] = self.bPlayerCard[i]
+    
+    def getfeature_outcard(self,_obs):
+        """fix the feature array of the outcard"""
+        for i in range(self.bSendCardCount):
+            _obs[i] = self.bPlayerSendCard[i]
+    
     
     def getpos(self):
         return self.playerpos
@@ -123,13 +134,16 @@ class Player(object):
         self.bHandCardCount= 0
         self.bSendCardCount = 0
 #        self.playerpos = 0
-        self.bPlayerSendCard = []
+        self.bPlayerSendCard.clear()
     
     def setland(self):
         self.bPlayerType = PlayerType.LANLORD.value
     
     def setfarmer(self):
         self.bPlayerType = PlayerType.FARMER.value
+    
+    def getplayertype(self):
+        return self.bPlayerType
     
     def add_backcard(self,backcard):
         for i in range(BACKCARD_COUNT):
@@ -154,6 +168,8 @@ class Player(object):
         self.bSendCardCount += card_count
         self.removeCard(card_data,card_count,self.bPlayerCard,bSourceCount)
         self.sortCardList(self.bPlayerCard,self.bHandCardCount,ST_ORDER)
+        for i in range(card_count):
+            self.bPlayerSendCard.append(card_data[i])
         
     
     def sub_s_sendcard(self,playercard):
