@@ -204,7 +204,9 @@ class DDZEnv(environment.Base):
     def step(self, a):
         """Apply actions, step the world forward, and return observations."""
         done = False
-        if self.ddztable.started():
+        _obs = None
+        reward = 0
+        if self.ddztable.started() is False:
             done = True
         action = self._action_set[a]
         action_type = ACTION_LOGIC_TYPE_CANCEL
