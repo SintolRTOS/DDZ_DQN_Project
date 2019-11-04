@@ -101,6 +101,7 @@ MASK_VALUE					=0x0F								#数值掩码
 ST_ORDER					=0									#大小排序
 ST_COUNT					=1									#数目排序
 BACKCARD_COUNT              =3                                  #底牌的数量
+LOGIC_OUT_LIST_COUNT        =4                                  #选择牌的逻辑数量
 
 class Player(object):
     def __init__(self,bpos):
@@ -206,6 +207,22 @@ class Player(object):
         out_card_result = tagOutCardResult()
         self.searchOutCard(self.bPlayerCard,self.bHandCardCount,bTurnCardData,bTurnCardCount,out_card_result)
         return out_card_result
+    
+    def getSearchOutList(self,bTurnCardData,bTurnCardCount):
+        logger.debug('getSearchOutList bTurnCardData bTurnCardCount:' + str(bTurnCardData) + ',' + str(bTurnCardCount))
+        out_card_list = []
+        TempTurnCardData = bTurnCardData.copy()
+        TempTurnCardCount = bTurnCardCount
+        for i in range(LOGIC_OUT_LIST_COUNT):
+            out_card_result = tagOutCardResult()
+            self.searchOutCard(self.bPlayerCard,self.bHandCardCount,TempTurnCardData,TempTurnCardCount,out_card_result)
+            if out_card_result.cbCardCount > 0:
+                out_card_list.append(out_card_result)
+                TempTurnCardData = out_card_result.cbResultCard.copy()
+                TempTurnCardCount = out_card_result.cbCardCount
+            else:
+                break
+        return out_card_list
         
         
     def getCardValue(self,cbCardData):

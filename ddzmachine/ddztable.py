@@ -38,6 +38,8 @@ class DDZTable(object):
         self.isstarted = False
         self.tableid = 0
         self.curpos = 0
+        self.train_user = 0
+        self.train_reward = 0
         
     def get_playerpos_pre(self):
         temp_pos = self.curpos - 1
@@ -51,6 +53,18 @@ class DDZTable(object):
         if temp_pos < 0:
             temp_pos = 2
         return temp_pos
+    
+    def set_train_user(self,user):
+        self.train_user = user
+    
+    def get_cur_pos(self):
+        return self.curpos
+    
+    def wait(self):
+        if self.train_user == self.curpos:
+            return True
+        else:
+            return False
         
         
     def get_observation(self,_obs):
@@ -99,10 +113,35 @@ class DDZTable(object):
         table_other_obs[2] = turncount
         table_other_obs[3] = land_score
         
-        
-            
-        
-        
+        #create out_card_logic
+        if cur_player is None:
+            return None
+        out_card_list = cur_player.getSearchOutList()
+        outcard_obs_one = _obs[4]
+        logic_one = outcard_obs_one[0]
+        logic_two = outcard_obs_one[1]
+        out_card_list_count = len(out_card_list)
+        if out_card_list_count >= 1:
+            out_card_result_one = out_card_list[0]
+            for i in range(out_card_result_one.cbCardCount):
+                logic_one[i] = out_card_result_one.cbResultCard[i]
+        if out_card_list_count >= 2:
+            out_card_result_two = out_card_list[1]
+            for i in range(out_card_result_two.cbCardCount):
+                logic_two[i] = out_card_result_two.cbResultCard[i]
+        outcard_obs_two = _obs[5]
+        logic_three = outcard_obs_two[0]
+        logic_four = outcard_obs_two[1]
+        if out_card_list_count >= 3:
+            out_card_result_three = out_card_list[2]
+            for i in range(out_card_result_three.cbCardCount):
+                logic_three[i] = out_card_result_three.cbResultCard[i]
+        if out_card_list_count >= 4:
+            out_card_result_four = out_card_list[3]
+            for i in range(out_card_result_four.cbCardCount):
+                logic_four[i] = out_card_result_four.cbResultCard[i]
+        return out_card_list
+               
 
     def receiveTotalCard(self,TotalCard):
         self.bTotalCard = TotalCard
@@ -220,7 +259,18 @@ class DDZTable(object):
         if player is not None:
             player.sub_s_out_card(card_count,card_info)
         self.curpos = cur_user
+        #计算训练得分
+        if self.train_user == out_card_user:
+            self.train_reward += card_count
+        else:
+            self.train_reward -= card_count
         return True
+    
+    #获得并且使用后清零训练得分
+    def get_train_reward(self):
+        reward = self.train_reward
+        self.train_reward = 0
+        return reward
     
     def sub_s_land_score(self,param):
         logger.info('DDZTable sub_s_land_score:' + str(param))
@@ -256,6 +306,10 @@ class DDZTable(object):
         self.isstarted = False
         self.tableid = 0
         self.curpos = 0
+        self.train_reward = 0
+    
+    def started(self):
+        return self.isstarted
     
     def startTable(self,tableid):
         logger.info('ddztable startTable with tableid:' + str(tableid))

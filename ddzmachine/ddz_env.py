@@ -153,6 +153,7 @@ class DDZEnv(environment.Base):
                  process_id,
                  table_id,
                  land_user,
+                 train_user,
                  ddztable):
         """ create a ddz env.
         the process_id is the server process id value.
@@ -163,10 +164,12 @@ class DDZEnv(environment.Base):
         self.process_id = process_id
         self.table_id = table_id
         self.land_user = land_user
+        self.train_user = train_user
         self.ddztable = ddztable
         self.observation_space = spaces.Box(low=0, high=255, shape=(FEATURE_MATIRX_HEIGHT, FEATURE_MATRIX_WIDTH, FEATURE_MATRIX_DEPTH), dtype=np.uint8)
         self._action_set = [ACTION_LOGIC_TYPE_ONE,ACTION_LOGIC_TYPE_TWO,ACTION_LOGIC_TYPE_THREE,ACTION_LOGIC_TYPE_FOUR,ACTION_LOGIC_TYPE_CANCEL]
         self.action_space = spaces.Discrete(len(self._action_set))
+        self.out_card_list = []
     
     
     
@@ -187,28 +190,54 @@ class DDZEnv(environment.Base):
     def get_obs(self):
         """with the ddzinfo obvervation information to be geted"""
         _obs = np.zeros((FEATURE_MATIRX_HEIGHT, FEATURE_MATRIX_WIDTH, FEATURE_MATRIX_DEPTH), dtype=np.uint8)
-        if self.ddztable is None:
-            return np.zeros((FEATURE_MATIRX_HEIGHT, FEATURE_MATRIX_WIDTH, FEATURE_MATRIX_DEPTH), dtype=np.uint8)
-        
-        return self.ddztable.get_observation(_obs)
+        if self.ddztable is not None and self.ddztable.started():
+            self.out_card_list = self.ddztable.get_observation(_obs).copy()
+        return _obs
     
     
     def reset(self):
         """Start a new episode."""
+        if self.out_card_list is not None:
+            self.out_card_list.clear()
         return self.get_obs()
     
-    def step(self, actions):
+    def step(self, a):
         """Apply actions, step the world forward, and return observations."""
-        if self._state == environment.StepType.LAST:
-          return self.reset()
+        done = False
+        if self.ddztable.started():
+            done = True
+        action = self._action_set[a]
+        action_type = ACTION_LOGIC_TYPE_CANCEL
+        out_card_result = None
+        if self.out_card_list is not None:
+            count = len(self.out_card_list)
+            if action >= count:
+                action_type = ACTION_LOGIC_TYPE_CANCEL
+            else:
+                action_type = action
+        if action_type == ACTION_LOGIC_TYPE_ONE:
+            out_card_result = self.out_card_list[0]
+        elif action_type == ACTION_LOGIC_TYPE_TWO:
+            out_card_result = self.out_card_list[1]
+        elif action_type == ACTION_LOGIC_TYPE_THREE:
+            out_card_result = self.out_card_list[2]
+        elif action_type == ACTION_LOGIC_TYPE_FOUR:
+            out_card_result = self.out_card_list[3]
+        reward = self.do_action(action_type,out_card_result)
+        _obs = self.get_obs()
+        return _obs,reward,done
     
-        self._parallel.run(
-            (c.act, self._features.transform_action(o.observation, a))
-            for c, o, a in zip(self._controllers, self._obs, actions))
+    def do_action(self,action_type,out_card_result):
+        while True:
+            if self.ddztable.wait():
+                break
+        reward = self.ddztable.get_train_reward()
+        return reward
     
-        self._state = environment.StepType.MID
-        return self._step()
+    def model_callback(self,local_vars,global_vars):
+        
+        return False
 
-env = DDZEnv(0,0,0,0)
+env = DDZEnv(0,0,0,0,0)
 obs = env.observation_spec()
 print(str(obs))

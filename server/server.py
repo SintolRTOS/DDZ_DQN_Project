@@ -94,7 +94,7 @@ class DQN_Server(http.server.BaseHTTPRequestHandler):
         
         global PROCESS_ID
         action_ret = {}
-        action_ret['retcode'] = 0
+        action_ret['retcode'] = 1
         action_ret['retinfo'] = None
         if action_id == int(ActionType.START_ACTION_PROCESS.value):
             PROCESS_ID += 1
@@ -126,6 +126,8 @@ class DQN_Server(http.server.BaseHTTPRequestHandler):
             if retinfo is None:
                 action_ret['retcode'] = -1
             action_ret['retinfo'] = retinfo
+        else:
+            action_ret['retcode'] = -1
         return action_ret
     
     def do_HEAD(self):

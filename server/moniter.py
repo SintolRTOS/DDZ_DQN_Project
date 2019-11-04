@@ -118,14 +118,21 @@ class MoniterProcess(threading.Thread):
                 json_ret['retcode'] = 1
             elif action_id == int(GameActionID.SUB_S_SEND_CARD.value):
                 self.ddztable.sub_s_send_card(param)
+                json_ret['retcode'] = 1
             elif action_id == int(GameActionID.SUB_S_LAND_SCORE.value):
                 self.ddztable.sub_s_land_score(param)
+                json_ret['retcode'] = 1
             elif action_id == int(GameActionID.SUB_S_GAME_START.value):
                 self.ddztable.sub_s_game_start(param)
+                json_ret['retcode'] = 1
             elif action_id == int(GameActionID.SUB_S_OUT_CARD.value):
                 self.ddztable.sub_s_out_card(param)
+                json_ret['retcode'] = 1
             elif action_id == int(GameActionID.SUB_S_PASS_CARD.value):
                 self.ddztable.sub_s_pass_card(param)
+                json_ret['retcode'] = 1
+            else:
+                json_ret['retcode'] = -1
                 
             
         except Exception as e:
