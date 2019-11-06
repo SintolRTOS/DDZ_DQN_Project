@@ -38,6 +38,9 @@ class TableInfo(object):
         self.bOutCardUser = 0
         self.bTurnCardData = []
     
+    def getland_user(self):
+        return self.bland_user
+    
     def setlanduser(self,land_user):
         self.bland_user = land_user
     

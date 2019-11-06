@@ -12,6 +12,13 @@ import logger
 from ddzmachine.player import Player
 from ddzmachine.table import TableInfo
 from ddzmachine.player import tagOutCardResult
+import enum
+
+class AILogicType(enum.Enum):
+  Normal = 1 #表示普通的模式
+  DeepQTrainLAND = 2 #表示使用DQN算法训练地主的模块
+  DeepQTrainUSER = 3 #表示使用DQN算法训练指定玩家的模块
+  
 
 TOTAL_CARD_COUNT = 54
 TOTAL_PLAYER_COUNT = 3
@@ -38,8 +45,18 @@ class DDZTable(object):
         self.isstarted = False
         self.tableid = 0
         self.curpos = 0
-        self.train_user = 0
+        self.train_user = -1
         self.train_reward = 0
+        self.ai_type = AILogicType.Normal.value
+    
+    def get_land_user(self):
+        return self.bTableInfo.getland_user()
+    
+    def set_AI_Type(self,value):
+        self.ai_type = value
+    
+    def set_env(self,env):
+        self.ai_env = env;
         
     def get_playerpos_pre(self):
         temp_pos = self.curpos - 1
@@ -315,6 +332,9 @@ class DDZTable(object):
         logger.info('ddztable startTable with tableid:' + str(tableid))
         self.tableid = tableid
         self.isstarted = True
+    
+    def gettableid(self):
+        return self.tableid
 
 #ddztable = DDZTable()
 #ddztable.clear()

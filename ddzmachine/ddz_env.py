@@ -9,11 +9,11 @@ import sys
 sys.path.append("..")
 
 from ddzmachine import environment
+import ddzmachine.colors as colors
 import collections
 import six
 import enum
 import numpy as np
-import colors
 from ddzmachine.ddztable import DDZTable
 from gym import spaces
 
@@ -199,6 +199,7 @@ class DDZEnv(environment.Base):
         """Start a new episode."""
         if self.out_card_list is not None:
             self.out_card_list.clear()
+        self.table_id = self.ddztable.gettableid()
         return self.get_obs()
     
     def step(self, a):
@@ -240,6 +241,6 @@ class DDZEnv(environment.Base):
         
         return False
 
-env = DDZEnv(0,0,0,0,0)
-obs = env.observation_spec()
-print(str(obs))
+#env = DDZEnv(0,0,0,0,0)
+#obs = env.observation_spec()
+#print(str(obs))
