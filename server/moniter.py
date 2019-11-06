@@ -19,7 +19,10 @@ import os
 import copy;
 import queue
 from ddzmachine.ddztable import DDZTable
+from ddzmachine.ddz_env import DDZEnv
 from threading import Lock
+import baselines.deepq.deepq as dqn
+import os.path as osp
 mutex=Lock()
 
 global NOISE_TYPE_WORD
@@ -40,6 +43,10 @@ class GameActionID(Enum):
     SUB_S_OUT_CARD				=103									#用户出牌
     SUB_S_PASS_CARD				=104									#放弃出牌
     SUB_S_GAME_END				=105									#游戏结束
+
+class AIActionID(Enum):
+    #启动AI训练模块
+    AI_START_DEEPQ = 1
 
     
 
@@ -62,6 +69,8 @@ class MoniterProcess(threading.Thread):
         self.params = queue.LifoQueue()
         self.tableid = 0
         self.ddztable = DDZTable()
+        self.ddz_env = None
+        self.ai_modle = None
 #        self.ddztable.clear()
         
     def run(self):                   #把要执行的代码写到run函数里面 线程在创建后会直接运行run函数 
@@ -92,6 +101,43 @@ class MoniterProcess(threading.Thread):
         if retinfo == False:
             return None
         return retinfo
+    
+    def start_ai_train_model(self,param):
+        mutex.acquire()
+        try :
+            logger.info('start_ai_train_model start.')
+            json_ret = {}
+            json_ret['retcode'] = -1
+            action_id = int(param['action_id'])
+            if action_id == int(AIActionID.AI_START_DEEPQ.value):
+                ai_type = param['ai_type']
+                train_user = param['train_user']
+                load_model = param['load_model']
+                save_model = param['save_model']
+                seed = param['seed']
+                self.ddztable.set_AI_Type(ai_type)
+                if train_user is not None:
+                    self.ddztable.set_train_user(train_user)
+                table_id = self.ddztable.gettableid()
+                land_user = self.ddztable.get_land_user()
+                self.ddz_env = DDZEnv(self.process_id,table_id,land_user,train_user,self.ddztable)
+                self.ai_modle = dqn.learn(
+                        env = self.ddz_env,
+                        seed = seed,
+                        save_model = load_model,
+                        callback = self.ddz_env.model_callback
+                        )
+                if save_model is not None:
+                    save_path = osp.expanduser(save_model)
+                    self.ai_modle.save(save_path)
+            logger.info('start_ai_train_model end.')
+        except Exception as e:
+            logger.info('start_ai_train_model except:', e)
+            json_ret = {
+                    'retcode' : -1,
+                    'errormsg' : str(e)
+                    }
+        mutex.release()
             
     def doaction(self):
         mutex.acquire()
@@ -206,6 +252,29 @@ class Moniter(object):
             return retinfo  
         mutex.release()
         return None
+    
+    def do_ai_process(self,process_id,param):
+        mutex.acquire()
+        if self.processdic.__contains__(process_id):
+            process = self.processdic[process_id]
+            iscompleted,isstarted,run_process,os_id = self.processdic[process_id].get_current_process_info()
+            if iscompleted:
+                retinfo = {}
+                retinfo['iscompleted'] = iscompleted
+                retinfo['retcode'] = -1
+            else:
+                process = self.processdic[process_id]
+                result = process.start_ai_train_model(param)
+                retinfo = {}
+                retinfo['iscompleted'] = iscompleted
+                retinfo['isstarted'] = isstarted
+                retinfo['run_process'] = run_process
+                retinfo['result'] = result
+                retinfo['os_id'] = os_id
+                retinfo['param'] = param
+                retinfo['retcode'] = 1
+        mutex.release()
+        return retinfo 
     
     def do_process(self,process_id,param):
         mutex.acquire()

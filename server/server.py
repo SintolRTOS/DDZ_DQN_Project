@@ -37,6 +37,8 @@ class ActionType(Enum):
     DO_ACTION_PROCESS = 4
     #获取AI推荐策略
     GET_ACTION_PROCESS = 5
+    #启动神经网络训练模型
+    START_DEEPQ_PROCESS = 6
 
 class DQN_Server(http.server.BaseHTTPRequestHandler):    
     
@@ -123,6 +125,13 @@ class DQN_Server(http.server.BaseHTTPRequestHandler):
             process_id = json_data['process_id']
             param = json_data['param']
             retinfo = moniterimp.getinfo_process(process_id,param)
+            if retinfo is None:
+                action_ret['retcode'] = -1
+            action_ret['retinfo'] = retinfo
+        elif action_id == int(ActionType.START_DEEPQ_PROCESS.value):
+            process_id = json_data['process_id']
+            param = json_data['param']
+            retinfo = moniterimp.do_ai_process(process_id,param)
             if retinfo is None:
                 action_ret['retcode'] = -1
             action_ret['retinfo'] = retinfo
