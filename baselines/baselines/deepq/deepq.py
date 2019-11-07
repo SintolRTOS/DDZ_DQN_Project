@@ -213,6 +213,8 @@ def learn(env,
         'q_func': q_func,
         'num_actions': env.action_space.n,
     }
+    
+    logger.log('act_params:' + str(act_params))
 
     act = ActWrapper(act, act_params)
 
@@ -251,7 +253,7 @@ def learn(env,
             load_variables(model_file)
             logger.log('Loaded model from {}'.format(model_file))
             model_saved = True
-        elif load_path is not None:
+        elif load_path is not None and os.path.exists(load_path):
             load_variables(load_path)
             logger.log('Loaded model from {}'.format(load_path))
 
@@ -275,12 +277,19 @@ def learn(env,
                 kwargs['reset'] = reset
                 kwargs['update_param_noise_threshold'] = update_param_noise_threshold
                 kwargs['update_param_noise_scale'] = True
+            logger.debug('feature obs:' + str(np.array(obs)[None]))
             action = act(np.array(obs)[None], update_eps=update_eps, **kwargs)[0]
             env_action = action
             reset = False
             new_obs, rew, done, _ = env.step(env_action)
             # Store transition in the replay buffer.
             replay_buffer.add(obs, action, rew, new_obs, float(done))
+            logger.debug('feature replay_buffer:')
+            logger.debug(str(obs))
+            logger.debug(str(action))
+            logger.debug(str(rew))
+            logger.debug(str(new_obs))
+            logger.debug(str(done))
             obs = new_obs
 
             episode_rewards[-1] += rew

@@ -138,11 +138,11 @@ ACTION_LOGIC_TYPE_CANCEL = 4
 ACTION_LOGIC_COUNT = 5
 
 #特征矩阵宽度
-FEATURE_MATIRX_HEIGHT = 2
+FEATURE_MATIRX_HEIGHT = 6
 #特征矩阵高度
-FEATURE_MATRIX_WIDTH = 20
+FEATURE_MATRIX_WIDTH = 2
 #特征矩阵深度
-FEATURE_MATRIX_DEPTH = 6
+FEATURE_MATRIX_DEPTH = 20
 
 
 class DDZEnv(environment.Base):
@@ -202,6 +202,9 @@ class DDZEnv(environment.Base):
         self.table_id = self.ddztable.gettableid()
         return self.get_obs()
     
+    def render(self):
+        return True
+    
     def step(self, a):
         """Apply actions, step the world forward, and return observations."""
         done = False
@@ -228,7 +231,7 @@ class DDZEnv(environment.Base):
             out_card_result = self.out_card_list[3]
         reward = self.do_action(action_type,out_card_result)
         _obs = self.get_obs()
-        return _obs,reward,done
+        return _obs,reward,done,self.ddztable.started()
     
     def do_action(self,action_type,out_card_result):
         while True:
