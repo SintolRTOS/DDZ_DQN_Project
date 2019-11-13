@@ -212,6 +212,7 @@ class DDZTable(object):
         self.bBackCard.clear()
         for i in range(TOTAL_BACKCARD_COUNT):
             value = backcard[str(i)]
+            logger.debug('back_card:' + str(i) + ',' + str(value))
             self.bBackCard.append(value)
         #保存当前位置
         self.curpos = curpos
@@ -220,6 +221,7 @@ class DDZTable(object):
             playerinfo = players[player_index]
             player_pos = playerinfo['bpos']
             player = self.getplayer(player_pos)
+            logger.debug('player:' + str(player_pos) + ',' + str(player))
             if player is not None:
                 player.sub_s_sendcard(playerinfo)
                 
@@ -238,6 +240,7 @@ class DDZTable(object):
         self.bBackCard.clear()
         for i in range(TOTAL_BACKCARD_COUNT):
             value = back_card[str(i)]
+            logger.debug('back_card:' + str(i) + ',' + str(value))
             self.bBackCard.append(value)
         
         land_player = self.getplayer(land_user)
