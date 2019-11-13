@@ -256,12 +256,12 @@ class MoniterProcess(threading.Thread):
             
     def doaction(self):
         mutex.acquire()
-        logger.info('ai doAction start.')
+        logger.info('doAction start.')
         for i in range(self.params.qsize()):
             param = self.params.get()
             self.parseaction(param)
         self.isacceted = False
-        logger.info('ai doAction end.')
+        logger.info('doAction end.')
         mutex.release()
     
     def parseaction(self,param):
