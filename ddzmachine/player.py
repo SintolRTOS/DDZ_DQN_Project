@@ -363,7 +363,7 @@ class Player(object):
                 #连牌判断
                 for i in range(1,AnalyseResult.cbThreeCount):
                     cbCardData=AnalyseResult.cbThreeCardData[i*3]
-                    if cbFirstLogicValue != self.GetCardLogicValue(cbCardData)+i :
+                    if cbFirstLogicValue != self.getCardLogicValue(cbCardData)+i :
                         return CT_ERROR
             
             if AnalyseResult.cbThreeCount*3==cbCardCount:
