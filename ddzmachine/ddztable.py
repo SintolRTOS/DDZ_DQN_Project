@@ -255,6 +255,7 @@ class DDZTable(object):
         new_turn = param['new_turn']
 #        pass_user = param['pass_user']
         cur_user = param['cur_user']
+        logger.debug('new_ture:' + str(new_turn) + ',' + str(new_turn == True))
         if new_turn == True:
             self.bTableInfo.newturn()
         self.curpos = cur_user
