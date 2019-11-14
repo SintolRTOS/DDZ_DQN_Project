@@ -207,6 +207,7 @@ class Player(object):
         self.sortCardList(bTurnCardData,bTurnCardCount,ST_ORDER)
         out_card_result = tagOutCardResult()
         self.searchOutCard(self.bPlayerCard,self.bHandCardCount,bTurnCardData,bTurnCardCount,out_card_result)
+        logger.debug('getSearchOutCard resultt:' + str(out_card_result.cbCardCount) + ',' + str(out_card_result.cbResultCard))
         return out_card_result
     
     def getSearchOutList(self,bTurnCardData,bTurnCardCount):
@@ -214,6 +215,7 @@ class Player(object):
         out_card_list = []
         TempTurnCardData = bTurnCardData.copy()
         TempTurnCardCount = bTurnCardCount
+        self.sortCardList(TempTurnCardData,TempTurnCardCount,ST_ORDER)
         for i in range(LOGIC_OUT_LIST_COUNT):
             out_card_result = tagOutCardResult()
             self.searchOutCard(self.bPlayerCard,self.bHandCardCount,TempTurnCardData,TempTurnCardCount,out_card_result)
