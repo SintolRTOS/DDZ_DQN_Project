@@ -103,12 +103,13 @@ class AIMoniterProcess(threading.Thread):
                 save_model = param['save_model']
                 seed = param['seed']
                 ddztable = self.depence_process.ddztable
-                ddztable.set_AI_Type(ai_type)
                 if train_user is not None:
                     ddztable.set_train_user(train_user)
+                ddztable.set_AI_Type(ai_type)
                 table_id = ddztable.gettableid()
                 land_user = ddztable.get_land_user()
                 self.ddz_env = DDZEnv(self.process_id,table_id,land_user,train_user,ddztable)
+                ddztable.set_env(self.ddz_env)
                 self.ai_modle = dqn.learn(
                         env = self.ddz_env,
                         network = 'mlp',

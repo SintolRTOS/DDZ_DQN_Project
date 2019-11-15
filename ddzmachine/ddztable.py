@@ -31,6 +31,19 @@ FEATURE_MATRIX_WIDTH = 2
 #特征矩阵深度
 FEATURE_MATRIX_DEPTH = 20
 
+#选择策略0
+ACTION_LOGIC_TYPE_ONE = 0
+#选择策略1
+ACTION_LOGIC_TYPE_TWO = 1
+#选择策略2
+ACTION_LOGIC_TYPE_THREE = 2
+#选择策略3
+ACTION_LOGIC_TYPE_FOUR = 3
+#放弃出牌策略
+ACTION_LOGIC_TYPE_CANCEL = 4
+#选择策略的最大数量
+ACTION_LOGIC_COUNT = 5
+
 class DDZTable(object):
     def __init__(self):
         super(DDZTable,self).__init__()
@@ -48,12 +61,18 @@ class DDZTable(object):
         self.train_user = -1
         self.train_reward = 0
         self.ai_type = AILogicType.Normal.value
+        self.is_new_logic = False
+        self.new_logic_result = None
+        self.ai_action_type = None
     
     def get_land_user(self):
         return self.bTableInfo.getland_user()
     
     def set_AI_Type(self,value):
         self.ai_type = value
+        if self.ai_type == AILogicType.DeepQTrainLAND.value:
+            self.train_user = self.bTableInfo.getland_user()
+        
     
     def set_env(self,env):
         self.ai_env = env;
@@ -77,11 +96,11 @@ class DDZTable(object):
     def get_cur_pos(self):
         return self.curpos
     
-    def wait(self):
-        if self.train_user == self.curpos:
-            return True
-        else:
-            return False
+#    def wait(self):
+#        if self.train_user == self.curpos:
+#            return True
+#        else:
+#            return False
         
         
     def get_observation(self,_obs):
@@ -173,6 +192,20 @@ class DDZTable(object):
                 return player
         return None
     
+    def set_ai_logistic_out(self,action_type,out_card_result):
+        if action_type == ACTION_LOGIC_TYPE_CANCEL:
+            self.new_logic_result = tagOutCardResult()
+        else:
+            self.new_logic_result = out_card_result       
+        self.ai_action_type = action_type
+        self.is_new_logic = True
+        logger.debug('ddztable set_ai_logistic_out cur_player:' 
+                     + str(self.ai_action_type)
+                     + ',' + str(self.is_new_logic)
+                     + ',' + str(self.new_logic_result.cbCardCount)
+                     + ',' + str(self.new_logic_result.cbResultCard))
+        
+    
     def get_logistic_out(self):
         if self.isstarted == False:
             return False
@@ -181,9 +214,15 @@ class DDZTable(object):
         if cur_player is None:
             return False
         
-        bTurnCardCount = self.bTableInfo.getturncardcount()
-        bTurnCardData = self.bTableInfo.getturncarddata()
-        result = cur_player.getSearchOutCard(bTurnCardData,bTurnCardCount)
+        #设置AI训练模式的训练单位
+        result = tagOutCardResult()
+        if self.ai_type == AILogicType.DeepQTrainLAND.value and self.train_user == self.curpos and self.is_new_logic:
+            result = self.new_logic_result
+            self.is_new_logic = False
+        else:
+            bTurnCardCount = self.bTableInfo.getturncardcount()
+            bTurnCardData = self.bTableInfo.getturncarddata()
+            result = cur_player.getSearchOutCard(bTurnCardData,bTurnCardCount)
         if result.cbCardCount == 0:
             retinfo = {
                     'retcode' : 0,
@@ -236,6 +275,12 @@ class DDZTable(object):
         self.bTableInfo.setlandscore(land_score)
         self.bTableInfo.setcuruser(cur_user)
         self.curpos = cur_user
+        #设置AI训练模式的训练单位
+        if self.ai_type == AILogicType.DeepQTrainLAND.value:
+            self.set_train_user(land_user)
+            if self.train_user == cur_user:
+                if self.ai_env is not None:
+                    self.ai_env.update_observation()
         #获得数值底牌
         self.bBackCard.clear()
         for i in range(TOTAL_BACKCARD_COUNT):
@@ -259,6 +304,11 @@ class DDZTable(object):
         if new_turn == True:
             self.bTableInfo.newturn()
         self.curpos = cur_user
+        #设置AI训练模式的训练单位
+        if self.ai_type == AILogicType.DeepQTrainLAND.value:
+            if self.train_user == self.curpos:
+                if self.ai_env is not None:
+                    self.ai_env.update_observation()
                       
     #处理游戏出牌
     def sub_s_out_card(self,param):
@@ -281,10 +331,16 @@ class DDZTable(object):
             player.sub_s_out_card(card_count,card_info)
         self.curpos = cur_user
         #计算训练得分
-        if self.train_user == out_card_user:
-            self.train_reward += card_count
-        else:
-            self.train_reward -= card_count
+        if self.ai_type == AILogicType.DeepQTrainLAND.value:         
+            if self.train_user == out_card_user:
+                self.train_reward += card_count
+            else:
+                self.train_reward -= card_count
+        #设置AI训练模式的训练单位
+        if self.ai_type == AILogicType.DeepQTrainLAND.value:
+            if self.train_user == self.curpos:
+                if self.ai_env is not None:
+                    self.ai_env.update_observation()
         return True
     
     #获得并且使用后清零训练得分
@@ -328,6 +384,14 @@ class DDZTable(object):
         self.tableid = 0
         self.curpos = 0
         self.train_reward = 0
+        self.is_new_logic = False
+        self.new_logic_result = None
+        self.ai_action_type = None
+        #设置AI训练模式的训练单位
+        if self.ai_type == AILogicType.DeepQTrainLAND.value:
+            if self.train_user == self.curpos:
+                if self.ai_env is not None:
+                    self.ai_env.update_observation()
     
     def started(self):
         return self.isstarted

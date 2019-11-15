@@ -16,6 +16,7 @@ import enum
 import numpy as np
 from ddzmachine.ddztable import DDZTable
 from gym import spaces
+import logger
 
 class FeatureType(enum.Enum):
   SCALAR = 1
@@ -170,6 +171,16 @@ class DDZEnv(environment.Base):
         self._action_set = [ACTION_LOGIC_TYPE_ONE,ACTION_LOGIC_TYPE_TWO,ACTION_LOGIC_TYPE_THREE,ACTION_LOGIC_TYPE_FOUR,ACTION_LOGIC_TYPE_CANCEL]
         self.action_space = spaces.Discrete(len(self._action_set))
         self.out_card_list = []
+        self.is_continue = False
+        logger.debug('DDZEnv init:' + str(self.process_id)
+            + ',' + str(self.table_id) 
+            + ',' + str(self.land_user)
+            + ',' + str(self.train_user)
+            + ',' + str(self.ddztable)
+            + ',' + str(self.observation_space)
+            + ',' + str(self._action_set)
+            + ',' + str(self.action_space))
+        
     
     
     
@@ -192,21 +203,32 @@ class DDZEnv(environment.Base):
         _obs = np.zeros((FEATURE_MATIRX_HEIGHT, FEATURE_MATRIX_WIDTH, FEATURE_MATRIX_DEPTH), dtype=np.uint8)
         if self.ddztable is not None and self.ddztable.started():
             self.out_card_list = self.ddztable.get_observation(_obs).copy()
+        logger.debug('DDZEnv get_obs:' + str(_obs))
         return _obs
     
     
     def reset(self):
         """Start a new episode."""
+        logger.debug('DDZEnv reset start:' + str(self.process_id))
+        while True:
+            if self.is_continue:
+                break
         if self.out_card_list is not None:
             self.out_card_list.clear()
         self.table_id = self.ddztable.gettableid()
+        logger.debug('DDZEnv reset end:' + str(self.process_id))
         return self.get_obs()
     
     def render(self):
         return True
     
+    def update_observation(self):
+        self.is_continue = True
+        
+    
     def step(self, a):
         """Apply actions, step the world forward, and return observations."""
+        logger.debug('DDZEnv step start:' + str(self.process_id) + ',' + str(a))
         done = False
         _obs = None
         reward = 0
@@ -231,13 +253,26 @@ class DDZEnv(environment.Base):
             out_card_result = self.out_card_list[3]
         reward = self.do_action(action_type,out_card_result)
         _obs = self.get_obs()
+        logger.debug('DDZEnv step result:'
+                     + str(_obs)
+                     + ',' + str(reward)
+                     + ',' + str(done)
+                     + ',' + str(self.ddztable.started()))
+        logger.debug('DDZEnv step end:' + str(self.process_id))
         return _obs,reward,done,self.ddztable.started()
     
     def do_action(self,action_type,out_card_result):
+        logger.debug('DDZEnv do_action start.')
+        logger.debug('DDZEnv do_action action_type:' + str(action_type))
+        logger.debug('DDZEnv do_action out_card_result:' + str(out_card_result))
+        if self.ddztable is not None:
+            self.ddztable.set_ai_logistic_out(action_type,out_card_result)
         while True:
-            if self.ddztable.wait():
+            if self.is_continue:
                 break
         reward = self.ddztable.get_train_reward()
+        self.is_continue = False
+        logger.debug('DDZEnv do_action end.')
         return reward
     
     def model_callback(self,local_vars,global_vars):
