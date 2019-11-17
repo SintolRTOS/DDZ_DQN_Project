@@ -152,7 +152,9 @@ class DDZTable(object):
         #create out_card_logic
         if cur_player is None:
             return None
-        out_card_list = cur_player.getSearchOutList()
+        bTurnCardCount = self.bTableInfo.getturncardcount()
+        bTurnCardData = self.bTableInfo.getturncarddata()
+        out_card_list = cur_player.getSearchOutList(bTurnCardData,bTurnCardCount)
         outcard_obs_one = _obs[4]
         logic_one = outcard_obs_one[0]
         logic_two = outcard_obs_one[1]
@@ -275,12 +277,6 @@ class DDZTable(object):
         self.bTableInfo.setlandscore(land_score)
         self.bTableInfo.setcuruser(cur_user)
         self.curpos = cur_user
-        #设置AI训练模式的训练单位
-        if self.ai_type == AILogicType.DeepQTrainLAND.value:
-            self.set_train_user(land_user)
-            if self.train_user == cur_user:
-                if self.ai_env is not None:
-                    self.ai_env.update_observation()
         #获得数值底牌
         self.bBackCard.clear()
         for i in range(TOTAL_BACKCARD_COUNT):
@@ -292,6 +288,13 @@ class DDZTable(object):
         if land_player is not None:
             land_player.setland()
             land_player.add_backcard(back_card)
+        
+        #设置AI训练模式的训练单位
+        if self.ai_type == AILogicType.DeepQTrainLAND.value:
+            self.set_train_user(land_user)
+            if self.train_user == cur_user:
+                if self.ai_env is not None:
+                    self.ai_env.update_observation()
         return True
     
     #处理过牌的逻辑
