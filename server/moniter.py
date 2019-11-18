@@ -62,7 +62,7 @@ class AIMoniterProcess(threading.Thread):
         self.isacceted = False
         self.ddz_env = None
         self.ai_modle = None
-        self.params = queue.LifoQueue()
+        self.params = queue.Queue()
     
     def run(self):
         print('Starting ai_thread' + self.name)
@@ -183,7 +183,7 @@ class MoniterProcess(threading.Thread):
         self.isstarted = False
         self.isacceted = False
         self.os_id = 0
-        self.params = queue.LifoQueue()
+        self.params = queue.Queue()
         self.tableid = 0
         self.ddztable = DDZTable()
         self.ddz_env = None
