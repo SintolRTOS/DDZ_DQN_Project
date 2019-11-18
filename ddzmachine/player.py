@@ -223,28 +223,32 @@ class Player(object):
             out_card_result_single = tagOutCardResult()
             flag = self.searchSingleCard(TempTurnCardData,TempTurnCardCount,out_card_result_single)
             if flag:
+                logger.debug('getSearchOutList single_out:' + str(out_card_result_single.cbResultCard))
                 out_card_list.append(out_card_result_single)
             #搜索对牌策略
             out_card_result_double = tagOutCardResult()
             flag = self.searchDoubleCard(TempTurnCardData,TempTurnCardCount,out_card_result_double)
             if flag:
+                logger.debug('getSearchOutList out_card_result_double:' + str(out_card_result_double.cbResultCard))
                 out_card_list.append(out_card_result_double)
             #搜索三代二策略
             out_card_result_three_take_double = tagOutCardResult()
             flag = self.searchThree_line_take_two_Card(TempTurnCardData,TempTurnCardCount,out_card_result_three_take_double)
             if flag:
+                logger.debug('getSearchOutList out_card_result_three_take_double:' + str(out_card_result_three_take_double.cbResultCard))
                 out_card_list.append(out_card_result_three_take_double)
             #搜索三代一策略
             out_card_result_three_take_one = tagOutCardResult()
             flag = self.searchThree_line_take_one_Card(TempTurnCardData,TempTurnCardCount,out_card_result_three_take_one)
             if flag:
+                logger.debug('getSearchOutList out_card_result_three_take_one:' + str(out_card_result_three_take_one.cbResultCard))
                 out_card_list.append(out_card_result_three_take_one)
             for i in range(LOGIC_OUT_LIST_COUNT):
-                out_card_result = tagOutCardResult()
-                self.searchOutCard(self.bPlayerCard,self.bHandCardCount,TempTurnCardData,TempTurnCardCount,out_card_result)
                 if len(out_card_list) >= LOGIC_OUT_LIST_COUNT:
                     break
-                elif out_card_result.cbCardCount > 0:
+                out_card_result = tagOutCardResult()
+                self.searchOutCard(self.bPlayerCard,self.bHandCardCount,TempTurnCardData,TempTurnCardCount,out_card_result)
+                if out_card_result.cbCardCount > 0:
                     out_card_list.append(out_card_result)
                     TempTurnCardData = out_card_result.cbResultCard.copy()
                     TempTurnCardCount = out_card_result.cbCardCount
