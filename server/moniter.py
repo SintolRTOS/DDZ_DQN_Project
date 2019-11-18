@@ -213,11 +213,21 @@ class MoniterProcess(threading.Thread):
         self.run_process = 1.
     
     def get_logistic_ai_info(self):
+        logger.debug('get_logistic_ai_info start')
         if self.isstarted == False or self.iscompleted == True:
             return None
+        while True:
+            time.sleep(0.1)
+            logger.debug('self.isacceted:' + str(self.isacceted))
+            if self.isacceted is False:
+                break
+            else:
+                self.doaction()
+        logger.debug('get_logistic_ai_info start self.ddztable.get_logistic_out() .')
         retinfo = self.ddztable.get_logistic_out()
         if retinfo == False:
             return None
+        logger.debug('get_logistic_ai_info end.')
         return retinfo
     
     def start_ai_train_model(self,param):
@@ -356,7 +366,7 @@ class Moniter(object):
         return None
     
     def getinfo_process(self,process_id,param):
-        mutex.acquire()
+        #mutex.acquire()
         if self.processdic.__contains__(process_id):
             process = self.processdic[process_id]
             iscompleted,isstarted,run_process,os_id = process.get_current_process_info()
@@ -368,9 +378,9 @@ class Moniter(object):
             retinfo['retcode'] = 1
             logistic_info = process.get_logistic_ai_info()
             retinfo['result'] = logistic_info
-            mutex.release()
+            # mutex.release()
             return retinfo  
-        mutex.release()
+        #mutex.release()
         return None
     
     def do_ai_process(self,process_id,param):
