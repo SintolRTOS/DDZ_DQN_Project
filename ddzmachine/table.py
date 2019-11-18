@@ -62,6 +62,11 @@ class TableInfo(object):
     def getland_score(self):
         return self.bland_score
     
+    def is_new_turn(self):
+        if self.bTurnCardCount == 0:
+            return True
+        else:
+            return False
     
     def newturn(self):
         self.bTurnCardCount = 0

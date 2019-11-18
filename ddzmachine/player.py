@@ -171,6 +171,9 @@ class Player(object):
         self.sortCardList(self.bPlayerCard,self.bHandCardCount,ST_ORDER)
         for i in range(card_count):
             self.bPlayerSendCard.append(card_data[i])
+    
+    def get_hand_card_count(self):
+        return self.bHandCardCount
         
     
     def sub_s_sendcard(self,playercard):
@@ -215,16 +218,49 @@ class Player(object):
         out_card_list = []
         TempTurnCardData = bTurnCardData.copy()
         TempTurnCardCount = bTurnCardCount
-        self.sortCardList(TempTurnCardData,TempTurnCardCount,ST_ORDER)
-        for i in range(LOGIC_OUT_LIST_COUNT):
-            out_card_result = tagOutCardResult()
-            self.searchOutCard(self.bPlayerCard,self.bHandCardCount,TempTurnCardData,TempTurnCardCount,out_card_result)
-            if out_card_result.cbCardCount > 0:
-                out_card_list.append(out_card_result)
-                TempTurnCardData = out_card_result.cbResultCard.copy()
-                TempTurnCardCount = out_card_result.cbCardCount
-            else:
-                break
+        if TempTurnCardCount == 0:
+            #先搜单牌策略
+            out_card_result_single = tagOutCardResult()
+            flag = self.searchSingleCard(TempTurnCardData,TempTurnCardCount,out_card_result_single)
+            if flag:
+                out_card_list.append(out_card_result_single)
+            #搜索对牌策略
+            out_card_result_double = tagOutCardResult()
+            flag = self.searchDoubleCard(TempTurnCardData,TempTurnCardCount,out_card_result_double)
+            if flag:
+                out_card_list.append(out_card_result_double)
+            #搜索三代二策略
+            out_card_result_three_take_double = tagOutCardResult()
+            flag = self.searchThree_line_take_two_Card(TempTurnCardData,TempTurnCardCount,out_card_result_three_take_double)
+            if flag:
+                out_card_list.append(out_card_result_three_take_double)
+            #搜索三代一策略
+            out_card_result_three_take_one = tagOutCardResult()
+            flag = self.searchThree_line_take_one_Card(TempTurnCardData,TempTurnCardCount,out_card_result_three_take_one)
+            if flag:
+                out_card_list.append(out_card_result_three_take_one)
+            for i in range(LOGIC_OUT_LIST_COUNT):
+                out_card_result = tagOutCardResult()
+                self.searchOutCard(self.bPlayerCard,self.bHandCardCount,TempTurnCardData,TempTurnCardCount,out_card_result)
+                if len(out_card_list) >= LOGIC_OUT_LIST_COUNT:
+                    break
+                elif out_card_result.cbCardCount > 0:
+                    out_card_list.append(out_card_result)
+                    TempTurnCardData = out_card_result.cbResultCard.copy()
+                    TempTurnCardCount = out_card_result.cbCardCount
+                else:
+                    break
+        else:
+            self.sortCardList(TempTurnCardData,TempTurnCardCount,ST_ORDER)
+            for i in range(LOGIC_OUT_LIST_COUNT):
+                out_card_result = tagOutCardResult()
+                self.searchOutCard(self.bPlayerCard,self.bHandCardCount,TempTurnCardData,TempTurnCardCount,out_card_result)
+                if out_card_result.cbCardCount > 0:
+                    out_card_list.append(out_card_result)
+                    TempTurnCardData = out_card_result.cbResultCard.copy()
+                    TempTurnCardCount = out_card_result.cbCardCount
+                else:
+                    break
         return out_card_list
         
         
@@ -558,7 +594,81 @@ class Player(object):
         logger.debug('player removeCard result:'+str(cbCardData))
         return True
                     
-        
+    #搜索空的单牌出牌
+    def searchSingleCard(self,cbHandCardData,cbHandCardCount,OutCardResult):
+        OutCardResult.zero()
+        cbCardCount = cbHandCardCount
+        cbCardData = cbHandCardData.copy()
+        #排列扑克
+        self.sortCardList(cbCardData,cbCardCount,ST_ORDER)
+        #分析扑克
+        AnalyseResult = tagAnalyseResult()
+        self.analysebCardData(cbCardData,cbCardCount,AnalyseResult)
+        for i in range(AnalyseResult.cbSignedCount):
+            cbIndex=AnalyseResult.cbSignedCount-i-1
+            if self.getCardLogicValue(AnalyseResult.cbSignedCardData[cbIndex])>0:
+                #设置结果
+                OutCardResult.cbCardCount=1
+                for n in range(1):
+                    OutCardResult.cbResultCard[n] = AnalyseResult.cbSignedCardData[cbIndex+n]
+                    return True
+        return False
+    
+    #搜索空的对牌出牌
+    def searchDoubleCard(self,cbHandCardData,cbHandCardCount,OutCardResult):
+        OutCardResult.zero()
+        cbCardCount = cbHandCardCount
+        cbCardData = cbHandCardData.copy()
+        #排列扑克
+        self.sortCardList(cbCardData,cbCardCount,ST_ORDER)
+        #分析扑克
+        AnalyseResult = tagAnalyseResult()
+        self.analysebCardData(cbCardData,cbCardCount,AnalyseResult)
+        for i in range(AnalyseResult.cbDoubleCount):
+            cbIndex=(AnalyseResult.cbDoubleCount-i-1)*2
+            if self.getCardLogicValue(AnalyseResult.cbDoubleCardData[cbIndex])>0:
+                #设置结果
+                OutCardResult.cbCardCount=2
+                for n in range(2):
+                    OutCardResult.cbResultCard[n] = AnalyseResult.cbDoubleCardData[cbIndex+n]
+                    return True
+        return False
+    
+    #搜索空的三带二出牌
+    def searchThree_line_take_two_Card(self,cbHandCardData,cbHandCardCount,OutCardResult):
+        OutCardResult.zero()
+        cbCardCount = cbHandCardCount
+        cbCardData = cbHandCardData.copy()
+        #排列扑克
+        self.sortCardList(cbCardData,cbCardCount,ST_ORDER)
+        #分析扑克
+        AnalyseResult = tagAnalyseResult()
+        self.analysebCardData(cbCardData,cbCardCount,AnalyseResult)
+        if AnalyseResult.cbThreeCount > 0 and AnalyseResult.cbDoubleCount > 0:
+            for n in range(3):
+                    OutCardResult.cbResultCard[n] = AnalyseResult.cbThreeCardData[n]
+            for n in range(2):
+                    OutCardResult.cbResultCard[3+n] = AnalyseResult.cbDoubleCardData[3+n]
+            return True
+        return False
+    
+    #搜索空的三带一出牌
+    def searchThree_line_take_one_Card(self,cbHandCardData,cbHandCardCount,OutCardResult):
+        OutCardResult.zero()
+        cbCardCount = cbHandCardCount
+        cbCardData = cbHandCardData.copy()
+        #排列扑克
+        self.sortCardList(cbCardData,cbCardCount,ST_ORDER)
+        #分析扑克
+        AnalyseResult = tagAnalyseResult()
+        self.analysebCardData(cbCardData,cbCardCount,AnalyseResult)
+        if AnalyseResult.cbThreeCount > 0 and AnalyseResult.cbSignedCount > 0:
+            for n in range(3):
+                    OutCardResult.cbResultCard[n] = AnalyseResult.cbThreeCardData[n]
+            for n in range(1):
+                    OutCardResult.cbResultCard[3+n] = AnalyseResult.cbSignedCount[3+n]
+            return True
+        return False
     
     #搜索出牌
     def searchOutCard(self,cbHandCardData,cbHandCardCount,cbTurnCardData,cbTurnCardCount,OutCardResult):

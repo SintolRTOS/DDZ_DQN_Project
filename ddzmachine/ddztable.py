@@ -294,8 +294,12 @@ class DDZTable(object):
             self.set_train_user(land_user)
             if self.train_user == cur_user:
                 if self.ai_env is not None:
-                    self.ai_env.update_observation()
+                    self.ai_env.update_observation(False)
         return True
+    
+    #查询是否新一轮
+    def is_new_turn(self):
+        return self.bTableInfo.is_new_turn()
     
     #处理过牌的逻辑
     def sub_s_pass_card(self,param):
@@ -311,7 +315,7 @@ class DDZTable(object):
         if self.ai_type == AILogicType.DeepQTrainLAND.value:
             if self.train_user == self.curpos:
                 if self.ai_env is not None:
-                    self.ai_env.update_observation()
+                    self.ai_env.update_observation(False)
                       
     #处理游戏出牌
     def sub_s_out_card(self,param):
@@ -343,7 +347,10 @@ class DDZTable(object):
         if self.ai_type == AILogicType.DeepQTrainLAND.value:
             if self.train_user == self.curpos:
                 if self.ai_env is not None:
-                    self.ai_env.update_observation()
+                    if player is not None and player.get_hand_card_count() == 0:
+                        self.ai_env.update_observation(True)
+                    else:
+                        self.ai_env.update_observation(False)
         return True
     
     #获得并且使用后清零训练得分
@@ -394,7 +401,7 @@ class DDZTable(object):
         if self.ai_type == AILogicType.DeepQTrainLAND.value:
             if self.train_user == self.curpos:
                 if self.ai_env is not None:
-                    self.ai_env.update_observation()
+                    self.ai_env.update_observation(True)
     
     def started(self):
         return self.isstarted

@@ -84,6 +84,7 @@ class AIMoniterProcess(threading.Thread):
             return False
         self.isstarted = True
         while self.iscompleted is False:
+            time.sleep(0.1)
             if self.isacceted:
                 self.doaction()
         
@@ -205,6 +206,7 @@ class MoniterProcess(threading.Thread):
             return False
         self.isstarted = True
         while self.iscompleted is False:
+            time.sleep(0.1)
             if self.isacceted:
                 self.doaction()
             
