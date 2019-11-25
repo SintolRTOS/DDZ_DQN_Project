@@ -615,7 +615,7 @@ class Player(object):
                 OutCardResult.cbCardCount=1
                 for n in range(1):
                     OutCardResult.cbResultCard[n] = AnalyseResult.cbSignedCardData[cbIndex+n]
-                    return True
+                return True
         return False
     
     #搜索空的对牌出牌
@@ -649,6 +649,7 @@ class Player(object):
         AnalyseResult = tagAnalyseResult()
         self.analysebCardData(cbCardData,cbCardCount,AnalyseResult)
         if AnalyseResult.cbThreeCount > 0 and AnalyseResult.cbDoubleCount > 0:
+            OutCardResult.cbCardCount=5
             for n in range(3):
                     OutCardResult.cbResultCard[n] = AnalyseResult.cbThreeCardData[n]
             for n in range(2):
@@ -667,6 +668,7 @@ class Player(object):
         AnalyseResult = tagAnalyseResult()
         self.analysebCardData(cbCardData,cbCardCount,AnalyseResult)
         if AnalyseResult.cbThreeCount > 0 and AnalyseResult.cbSignedCount > 0:
+            OutCardResult.cbCardCount=4
             for n in range(3):
                     OutCardResult.cbResultCard[n] = AnalyseResult.cbThreeCardData[n]
             for n in range(1):
@@ -996,14 +998,14 @@ class Player(object):
         return False
 
                         
-player = Player(0)
-player.clear()
-bTurnCardData = [51, 18, 44, 12, 59, 42, 57, 25, 9, 8, 39, 38, 6, 21, 5, 35, 19, 17, 24, 22]
-bTurnCardCount = 20
-player.bPlayerCard = bTurnCardData
-player.bHandCardCount = bTurnCardCount
-result = player.getSearchOutList([],0)
-print(str(result))
+#player = Player(0)
+#player.clear()
+#bTurnCardData = [51, 18, 44, 12, 59, 42, 57, 25, 9, 8, 39, 38, 6, 21, 5, 35, 19, 17, 24, 22]
+#bTurnCardCount = 20
+#player.bPlayerCard = bTurnCardData
+#player.bHandCardCount = bTurnCardCount
+#result = player.getSearchOutList([],0)
+#print(str(result))
 #card_type = player.getCardType(bTurnCardData,bTurnCardCount)
 #cbCardData = [78, 34, 18, 59, 13, 58, 45, 26, 29, 40, 24, 39, 23, 54, 21, 36, 35, 0, 0, 0]
 #cbHandCardCount= 17

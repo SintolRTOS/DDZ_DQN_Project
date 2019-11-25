@@ -206,6 +206,7 @@ class DDZEnv(environment.Base):
         if self.ddztable is not None and self.ddztable.started():
             self.out_card_list = self.ddztable.get_observation(_obs).copy()
         logger.debug('DDZEnv get_obs:' + str(_obs))
+        logger.debug('DDZEnv get_obs self.out_card_list:' + str(self.out_card_list) + ',' + str(len(self.out_card_list)))
         return _obs
     
     
@@ -214,7 +215,7 @@ class DDZEnv(environment.Base):
         logger.debug('DDZEnv reset start:' + str(self.process_id))
         while True:
             time.sleep(0.1)
-            if self.is_continue:
+            if self.is_continue and self.done is False:
                 break
         if self.out_card_list is not None:
             self.out_card_list.clear()
@@ -225,8 +226,8 @@ class DDZEnv(environment.Base):
     def render(self):
         return True
     
-    def update_observation(self,is_done):
-        self.is_continue = True
+    def update_observation(self,is_done,is_continue):
+        self.is_continue = is_continue
         self.done = is_done
     
     def step(self, a):
@@ -243,6 +244,7 @@ class DDZEnv(environment.Base):
                 action_type = ACTION_LOGIC_TYPE_CANCEL
             else:
                 action_type = action
+        logger.debug('DDZEnv step self.out_card_list:' + str(self.out_card_list) + ',' + str(len(self.out_card_list)))
         if action_type == ACTION_LOGIC_TYPE_ONE:
             out_card_result = self.out_card_list[0]
         elif action_type == ACTION_LOGIC_TYPE_TWO:
@@ -255,7 +257,8 @@ class DDZEnv(environment.Base):
             #action the special info
             if self.ddztable.is_new_turn():
                 action_type = ACTION_LOGIC_TYPE_ONE
-                out_card_result = self.out_card_list[0]
+                if len(self.out_card_list) > 0:
+                    out_card_result = self.out_card_list[0]
         reward = self.do_action(action_type,out_card_result)
         _obs = self.get_obs()
         logger.debug('DDZEnv step result:'
