@@ -221,25 +221,25 @@ class Player(object):
         if TempTurnCardCount == 0:
             #先搜单牌策略
             out_card_result_single = tagOutCardResult()
-            flag = self.searchSingleCard(TempTurnCardData,TempTurnCardCount,out_card_result_single)
+            flag = self.searchSingleCard(self.bPlayerCard,self.bHandCardCount,out_card_result_single)
             if flag:
                 logger.debug('getSearchOutList single_out:' + str(out_card_result_single.cbResultCard))
                 out_card_list.append(out_card_result_single)
             #搜索对牌策略
             out_card_result_double = tagOutCardResult()
-            flag = self.searchDoubleCard(TempTurnCardData,TempTurnCardCount,out_card_result_double)
+            flag = self.searchDoubleCard(self.bPlayerCard,self.bHandCardCount,out_card_result_double)
             if flag:
                 logger.debug('getSearchOutList out_card_result_double:' + str(out_card_result_double.cbResultCard))
                 out_card_list.append(out_card_result_double)
             #搜索三代二策略
             out_card_result_three_take_double = tagOutCardResult()
-            flag = self.searchThree_line_take_two_Card(TempTurnCardData,TempTurnCardCount,out_card_result_three_take_double)
+            flag = self.searchThree_line_take_two_Card(self.bPlayerCard,self.bHandCardCount,out_card_result_three_take_double)
             if flag:
                 logger.debug('getSearchOutList out_card_result_three_take_double:' + str(out_card_result_three_take_double.cbResultCard))
                 out_card_list.append(out_card_result_three_take_double)
             #搜索三代一策略
             out_card_result_three_take_one = tagOutCardResult()
-            flag = self.searchThree_line_take_one_Card(TempTurnCardData,TempTurnCardCount,out_card_result_three_take_one)
+            flag = self.searchThree_line_take_one_Card(self.bPlayerCard,self.bHandCardCount,out_card_result_three_take_one)
             if flag:
                 logger.debug('getSearchOutList out_card_result_three_take_one:' + str(out_card_result_three_take_one.cbResultCard))
                 out_card_list.append(out_card_result_three_take_one)
@@ -635,7 +635,7 @@ class Player(object):
                 OutCardResult.cbCardCount=2
                 for n in range(2):
                     OutCardResult.cbResultCard[n] = AnalyseResult.cbDoubleCardData[cbIndex+n]
-                    return True
+                return True
         return False
     
     #搜索空的三带二出牌
@@ -652,7 +652,7 @@ class Player(object):
             for n in range(3):
                     OutCardResult.cbResultCard[n] = AnalyseResult.cbThreeCardData[n]
             for n in range(2):
-                    OutCardResult.cbResultCard[3+n] = AnalyseResult.cbDoubleCardData[3+n]
+                    OutCardResult.cbResultCard[3+n] = AnalyseResult.cbDoubleCardData[n]
             return True
         return False
     
@@ -670,7 +670,7 @@ class Player(object):
             for n in range(3):
                     OutCardResult.cbResultCard[n] = AnalyseResult.cbThreeCardData[n]
             for n in range(1):
-                    OutCardResult.cbResultCard[3+n] = AnalyseResult.cbSignedCount[3+n]
+                    OutCardResult.cbResultCard[3+n] = AnalyseResult.cbSignedCardData[n]
             return True
         return False
     
@@ -996,10 +996,14 @@ class Player(object):
         return False
 
                         
-#player = Player(0)
-#player.clear()
-#bTurnCardData = [12, 28, 44, 11, 27]
-#bTurnCardCount = 5
+player = Player(0)
+player.clear()
+bTurnCardData = [51, 18, 44, 12, 59, 42, 57, 25, 9, 8, 39, 38, 6, 21, 5, 35, 19, 17, 24, 22]
+bTurnCardCount = 20
+player.bPlayerCard = bTurnCardData
+player.bHandCardCount = bTurnCardCount
+result = player.getSearchOutList([],0)
+print(str(result))
 #card_type = player.getCardType(bTurnCardData,bTurnCardCount)
 #cbCardData = [78, 34, 18, 59, 13, 58, 45, 26, 29, 40, 24, 39, 23, 54, 21, 36, 35, 0, 0, 0]
 #cbHandCardCount= 17
