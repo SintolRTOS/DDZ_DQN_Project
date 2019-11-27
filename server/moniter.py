@@ -23,7 +23,7 @@ from ddzmachine.ddz_env import DDZEnv
 from threading import Lock
 import baselines.deepq.deepq as dqn
 import os.path as osp
-mutex=Lock()
+#mutex=Lock()
 ai_mutex = Lock()
 
 global NOISE_TYPE_WORD
@@ -188,6 +188,7 @@ class MoniterProcess(threading.Thread):
         self.ddztable = DDZTable()
         self.ddz_env = None
         self.ai_modle = None
+        self.mutex=Lock()
 #        self.ddztable.clear()
         
     def run(self):                   #把要执行的代码写到run函数里面 线程在创建后会直接运行run函数 
@@ -206,7 +207,7 @@ class MoniterProcess(threading.Thread):
             return False
         self.isstarted = True
         while self.iscompleted is False:
-            time.sleep(0.1)
+            time.sleep(0.01)
             if self.isacceted:
                 self.doaction()
             
@@ -217,7 +218,7 @@ class MoniterProcess(threading.Thread):
         if self.isstarted == False or self.iscompleted == True:
             return None
         while True:
-            time.sleep(0.1)
+            time.sleep(0.01)
             logger.debug('self.isacceted:' + str(self.isacceted))
             if self.isacceted is False:
                 break
@@ -231,7 +232,7 @@ class MoniterProcess(threading.Thread):
         return retinfo
     
     def start_ai_train_model(self,param):
-        mutex.acquire()
+        self.mutex.acquire()
         try :
             logger.info('start_ai_train_model start.')
             json_ret = {}
@@ -265,17 +266,17 @@ class MoniterProcess(threading.Thread):
                     'retcode' : -1,
                     'errormsg' : str(e)
                     }
-        mutex.release()
+        self.mutex.release()
             
     def doaction(self):
-        mutex.acquire()
+        self.mutex.acquire()
         logger.info('doAction start.')
         for i in range(self.params.qsize()):
             param = self.params.get()
             self.parseaction(param)
         self.isacceted = False
         logger.info('doAction end.')
-        mutex.release()
+        self.mutex.release()
     
     def parseaction(self,param):
         try :
@@ -351,7 +352,7 @@ class Moniter(object):
         return True
     
     def get_process(self,process_id):
-        mutex.acquire()
+        #mutex.acquire()
         if self.processdic.__contains__(process_id):
             iscompleted,isstarted,run_process,os_id = self.processdic[process_id].get_current_process_info()
             retinfo = {}
@@ -360,9 +361,9 @@ class Moniter(object):
             retinfo['run_process'] = run_process
             retinfo['os_id'] = os_id
             retinfo['retcode'] = 1
-            mutex.release()
+            #mutex.release()
             return retinfo  
-        mutex.release()
+        #mutex.release()
         return None
     
     def getinfo_process(self,process_id,param):
@@ -384,7 +385,7 @@ class Moniter(object):
         return None
     
     def do_ai_process(self,process_id,param):
-        mutex.acquire()
+        #mutex.acquire()
         retinfo = {}
         retinfo['retcode'] = -1
         if self.processdic.__contains__(process_id):
@@ -409,11 +410,11 @@ class Moniter(object):
                 retinfo['os_id'] = os_id
                 retinfo['param'] = param
                 retinfo['retcode'] = 1
-        mutex.release()
+        #mutex.release()
         return retinfo 
     
     def do_process(self,process_id,param):
-        mutex.acquire()
+        #mutex.acquire()
         retinfo = {}
         retinfo['retcode'] = -1
         if self.processdic.__contains__(process_id):
@@ -432,11 +433,11 @@ class Moniter(object):
                 retinfo['param'] = param
                 retinfo['retcode'] = 1
                 
-        mutex.release()
+        #mutex.release()
         return retinfo 
     
     def end_process(self,process_id):
-        mutex.acquire()
+        #mutex.acquire()
         if self.processdic.__contains__(process_id):
             process = self.processdic[process_id]
             process.doend()
@@ -447,9 +448,9 @@ class Moniter(object):
             retinfo['run_process'] = run_process
             retinfo['os_id'] = os_id
             retinfo['retcode'] = 1
-            mutex.release()
+            #mutex.release()
             return retinfo  
-        mutex.release()
+        #mutex.release()
         return None
         
         
