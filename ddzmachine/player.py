@@ -608,8 +608,8 @@ class Player(object):
         #分析扑克
         AnalyseResult = tagAnalyseResult()
         self.analysebCardData(cbCardData,cbCardCount,AnalyseResult)
-        for i in range(AnalyseResult.cbSignedCount):
-            cbIndex=AnalyseResult.cbSignedCount-i-1
+        if AnalyseResult.cbSignedCount > 0:
+            cbIndex = AnalyseResult.cbSignedCount - 1
             if self.getCardLogicValue(AnalyseResult.cbSignedCardData[cbIndex])>0:
                 #设置结果
                 OutCardResult.cbCardCount=1
@@ -628,8 +628,8 @@ class Player(object):
         #分析扑克
         AnalyseResult = tagAnalyseResult()
         self.analysebCardData(cbCardData,cbCardCount,AnalyseResult)
-        for i in range(AnalyseResult.cbDoubleCount):
-            cbIndex=(AnalyseResult.cbDoubleCount-i-1)*2
+        if AnalyseResult.cbDoubleCount > 0:
+            cbIndex=(AnalyseResult.cbDoubleCount-1)*2
             if self.getCardLogicValue(AnalyseResult.cbDoubleCardData[cbIndex])>0:
                 #设置结果
                 OutCardResult.cbCardCount=2
@@ -650,10 +650,12 @@ class Player(object):
         self.analysebCardData(cbCardData,cbCardCount,AnalyseResult)
         if AnalyseResult.cbThreeCount > 0 and AnalyseResult.cbDoubleCount > 0:
             OutCardResult.cbCardCount=5
+            cbIndex = (AnalyseResult.cbThreeCount-1)*3
             for n in range(3):
-                    OutCardResult.cbResultCard[n] = AnalyseResult.cbThreeCardData[n]
+                OutCardResult.cbResultCard[n] = AnalyseResult.cbThreeCardData[cbIndex + n]
+            cbIndex = (AnalyseResult.cbDoubleCount-1)*2
             for n in range(2):
-                    OutCardResult.cbResultCard[3+n] = AnalyseResult.cbDoubleCardData[n]
+                OutCardResult.cbResultCard[3+n] = AnalyseResult.cbDoubleCardData[cbIndex + n]
             return True
         return False
     
@@ -669,10 +671,12 @@ class Player(object):
         self.analysebCardData(cbCardData,cbCardCount,AnalyseResult)
         if AnalyseResult.cbThreeCount > 0 and AnalyseResult.cbSignedCount > 0:
             OutCardResult.cbCardCount=4
+            cbIndex = (AnalyseResult.cbThreeCount-1)*3
             for n in range(3):
-                    OutCardResult.cbResultCard[n] = AnalyseResult.cbThreeCardData[n]
+                OutCardResult.cbResultCard[n] = AnalyseResult.cbThreeCardData[cbIndex + n]
+            cbIndex = AnalyseResult.cbSignedCount - 1
             for n in range(1):
-                    OutCardResult.cbResultCard[3+n] = AnalyseResult.cbSignedCardData[n]
+                OutCardResult.cbResultCard[3+n] = AnalyseResult.cbSignedCardData[cbIndex + n]
             return True
         return False
     
@@ -933,8 +937,8 @@ class Player(object):
                                     if OutCardResult.cbCardCount==cbTurnCardCount:
                                         break
                                     #设置扑克
-                                    cbIndex=(AnalyseResultLeft.cbFourCount-k-1)*4
-                                    cbCardData1=AnalyseResultLeft.cbFourCardData[cbIndex]
+                                    cbIndex=(AnalyseResultLeft.cbThreeCount-k-1)*3
+                                    cbCardData1=AnalyseResultLeft.cbThreeCardData[cbIndex]
                                     cbCardData2=AnalyseResultLeft.cbThreeCardData[cbIndex+1]
                                     OutCardResult.cbResultCard[OutCardResult.cbCardCount]=cbCardData1
                                     OutCardResult.cbCardCount+=1
@@ -1000,11 +1004,14 @@ class Player(object):
                         
 #player = Player(0)
 #player.clear()
-#bTurnCardData = [51, 18, 44, 12, 59, 42, 57, 25, 9, 8, 39, 38, 6, 21, 5, 35, 19, 17, 24, 22]
-#bTurnCardCount = 20
+#bTurnCardData = [33, 17, 1, 45, 57, 27, 11, 23, 7, 53, 37, 5, 17, 19, 3, 19, 19, 0, 0, 0]
+#bTurnCardCount = 15
 #player.bPlayerCard = bTurnCardData
 #player.bHandCardCount = bTurnCardCount
 #result = player.getSearchOutList([],0)
+#tTurnCardData=[61, 29, 13, 56, 40]
+#tTurnCardCount=5
+#result = player.getSearchOutCard(tTurnCardData,tTurnCardCount)
 #print(str(result))
 #card_type = player.getCardType(bTurnCardData,bTurnCardCount)
 #cbCardData = [78, 34, 18, 59, 13, 58, 45, 26, 29, 40, 24, 39, 23, 54, 21, 36, 35, 0, 0, 0]
