@@ -13,6 +13,7 @@ from ddzmachine.player import Player
 from ddzmachine.table import TableInfo
 from ddzmachine.player import tagOutCardResult
 import enum
+import time
 
 class AILogicType(enum.Enum):
   Normal = 1 #表示普通的模式
@@ -218,7 +219,13 @@ class DDZTable(object):
         
         #设置AI训练模式的训练单位
         result = tagOutCardResult()
-        if self.ai_type == AILogicType.DeepQTrainLAND.value and self.train_user == self.curpos and self.is_new_logic:
+        if self.ai_type == AILogicType.DeepQTrainLAND.value and self.train_user == self.curpos:
+            loop_counter = 0
+            while self.is_new_logic is False and loop_counter < 20:
+                time.sleep(0.1)
+                loop_counter = loop_counter + 1
+                if self.ai_env is not None:
+                    self.ai_env.update_observation(False,True)
             result = self.new_logic_result
             self.is_new_logic = False
         else:
