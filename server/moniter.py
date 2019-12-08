@@ -23,6 +23,7 @@ from ddzmachine.ddz_env import DDZEnv
 from threading import Lock
 import baselines.deepq.deepq as dqn
 import os.path as osp
+import numpy as np
 #mutex=Lock()
 ai_mutex = Lock()
 
@@ -63,6 +64,7 @@ class AIMoniterProcess(threading.Thread):
         self.ddz_env = None
         self.ai_modle = None
         self.params = queue.Queue()
+        self.is_play_model = False
     
     def run(self):
         print('Starting ai_thread' + self.name)
@@ -121,7 +123,31 @@ class AIMoniterProcess(threading.Thread):
                 if save_model is not None:
                     save_path = osp.expanduser(save_model)
                     self.ai_modle.save(save_path)
-                self.doend()
+                
+                is_play = param['is_play']
+                if is_play is True:
+                    logger.info("start_ai_train_model running trained model")
+                    obs = self.ddz_env.reset()
+                    state = self.ai_modle.initial_state if hasattr(self.ai_modle, 'initial_state') else None
+                    dones = np.zeros((1,))
+                    episode_rew = 0
+                    self.is_play_model = True
+                    while self.is_play_model:
+                        if state is not None:
+                            actions, _, state, _ = self.ai_modle.step(obs,S=state, M=dones)
+                        else:
+                            actions, _, _, _ = self.ai_modle.step(obs)
+                        
+                        obs, rew, done, _ = self.ddz_env.step(actions)
+                        episode_rew += rew
+                        self.ddz_env.render()
+                        done = done.any() if isinstance(done, np.ndarray) else done
+                        if done:
+                             print('episode_rew={}'.format(episode_rew))
+                             episode_rew = 0
+                             obs = self.ddz_env.reset()    
+                    logger.info("start_ai_train_model stop trained model")
+            self.doend()
             logger.info('start_ai_train_model end.')
         except Exception as e:
             logger.info('start_ai_train_model except:', e)
