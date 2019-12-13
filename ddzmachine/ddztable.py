@@ -221,12 +221,16 @@ class DDZTable(object):
         result = tagOutCardResult()
         if self.ai_type == AILogicType.DeepQTrainLAND.value and self.train_user == self.curpos:
             loop_counter = 0
-            while self.is_new_logic is False and loop_counter < 20:
+            while self.is_new_logic is False: #and loop_counter < 200:
                 time.sleep(0.1)
                 loop_counter = loop_counter + 1
+                logger.debug('loop_counter' + str(loop_counter))
                 if self.ai_env is not None:
                     self.ai_env.update_observation(False,True)
             result = self.new_logic_result
+            if result is None:
+                logger.error('self.new_logic_result is None:' + str(loop_counter))
+                result = tagOutCardResult()
             self.is_new_logic = False
         else:
             bTurnCardCount = self.bTableInfo.getturncardcount()

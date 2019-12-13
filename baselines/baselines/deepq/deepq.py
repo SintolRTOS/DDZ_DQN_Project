@@ -248,14 +248,16 @@ def learn(env,
 
         model_file = os.path.join(td, "model")
         model_saved = False
-
+        
+        logger.info('start Loading model from {}'.format(load_path))
+        
         if tf.train.latest_checkpoint(td) is not None:
             load_variables(model_file)
-            logger.log('Loaded model from {}'.format(model_file))
+            logger.info('Loaded model from {}'.format(model_file))
             model_saved = True
         elif load_path is not None and os.path.exists(load_path):
             load_variables(load_path)
-            logger.log('Loaded model from {}'.format(load_path))
+            logger.info('Loaded model from {}'.format(load_path))
 
 
         for t in range(total_timesteps):

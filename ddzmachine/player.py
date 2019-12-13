@@ -686,6 +686,9 @@ class Player(object):
         OutCardResult.zero()
         logger.debug('player searchOutCard OutCardResult:' + str(OutCardResult))
         
+        if cbHandCardCount == 0:
+            OutCardResult.cbCardCount = 0
+            return True
         #构造扑克
         cbCardData = [None] * MAX_COUNT
         cbCardCount = cbHandCardCount
@@ -1004,8 +1007,8 @@ class Player(object):
                         
 #player = Player(0)
 #player.clear()
-#bTurnCardData = [33, 17, 1, 45, 57, 27, 11, 23, 7, 53, 37, 5, 17, 19, 3, 19, 19, 0, 0, 0]
-#bTurnCardCount = 15
+#bTurnCardData = [None] * MAX_COUNT 
+#bTurnCardCount = 0
 #player.bPlayerCard = bTurnCardData
 #player.bHandCardCount = bTurnCardCount
 #result = player.getSearchOutList([],0)
