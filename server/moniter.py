@@ -24,6 +24,9 @@ from threading import Lock
 import baselines.deepq.deepq as dqn
 import os.path as osp
 import numpy as np
+import inspect
+import ctypes
+
 #mutex=Lock()
 ai_mutex = Lock()
 
@@ -45,6 +48,27 @@ class GameActionID(Enum):
     SUB_S_OUT_CARD				=103									#用户出牌
     SUB_S_PASS_CARD				=104									#放弃出牌
     SUB_S_GAME_END				=105									#游戏结束
+
+
+
+def _async_raise(tid, exctype):
+  """raises the exception, performs cleanup if needed"""
+  tid = ctypes.c_long(tid)
+  if not inspect.isclass(exctype):
+   exctype = type(exctype)
+  res = ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, ctypes.py_object(exctype))
+  if res == 0:
+   raise ValueError("invalid thread id")
+  elif res != 1:
+   # """if it returns a number greater than one, you're in trouble, 
+   # and you should call it again with exc=NULL to revert the effect""" 
+   ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, None)
+   raise SystemError("PyThreadState_SetAsyncExc failed")
+ 
+ 
+def stop_thread(thread):
+  _async_raise(thread.ident, SystemExit)
+  
 
 class AIActionID(Enum):
     #启动AI训练模块
@@ -189,7 +213,7 @@ class AIMoniterProcess(threading.Thread):
         result['depence_process'] = str(self.depence_process)
         return result
     
-    def doend(self):
+    def doend(self):  
         self.iscompleted = True
 
     
@@ -467,6 +491,10 @@ class Moniter(object):
         if self.processdic.__contains__(process_id):
             process = self.processdic[process_id]
             process.doend()
+            if self.ai_processdic.__contains__(process_id):
+                ai_process = self.ai_processdic[process_id]
+                stop_thread(ai_process)
+                ai_process.doend()
             iscompleted,isstarted,run_process,os_id = self.processdic[process_id].get_current_process_info()
             retinfo = {}
             retinfo['iscompleted'] = iscompleted
