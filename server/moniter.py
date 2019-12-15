@@ -276,6 +276,7 @@ class MoniterProcess(threading.Thread):
                 self.doaction()
         logger.debug('get_logistic_ai_info start self.ddztable.get_logistic_out() .')
         retinfo = self.ddztable.get_logistic_out()
+        logger.debug('get_logistic_ai_info retinfo:' + str(retinfo))
         if retinfo == False:
             return None
         logger.debug('get_logistic_ai_info end.')
@@ -429,6 +430,7 @@ class Moniter(object):
             retinfo['retcode'] = 1
             logistic_info = process.get_logistic_ai_info()
             retinfo['result'] = logistic_info
+            logger.debug('getinfo_process retinfo:' + str(retinfo))
             # mutex.release()
             return retinfo  
         #mutex.release()

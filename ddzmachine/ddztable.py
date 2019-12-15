@@ -211,11 +211,21 @@ class DDZTable(object):
     
     def get_logistic_out(self):
         if self.isstarted == False:
-            return False
+            retinfo = {
+                    'retcode' : 0,
+                    'errormsg' : 'ddztable is not started.'
+                    }
+            logger.debug('get_logistic_out get result:' + str(retinfo))
+            return retinfo
         logger.debug('get_logistic_out cur_player:' + str(self.curpos))
         cur_player = self.getplayer(self.curpos)
         if cur_player is None:
-            return False
+            retinfo = {
+                    'retcode' : 0,
+                    'errormsg' : 'cur_player is not exsited.'
+                    }
+            logger.debug('get_logistic_out get result:' + str(retinfo))
+            return retinfo
         
         #设置AI训练模式的训练单位
         result = tagOutCardResult()
@@ -225,7 +235,7 @@ class DDZTable(object):
             while self.is_new_logic is False: #and loop_counter < 200:
                 time.sleep(0.1)
                 loop_counter = loop_counter + 1
-                logger.debug('loop_counter' + str(loop_counter))
+                logger.debug('get_logistic_out loop_counter' + str(loop_counter))
                 if self.ai_env is not None:
                     self.ai_env.update_observation(False,True)
             result = self.new_logic_result
