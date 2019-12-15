@@ -220,6 +220,7 @@ class DDZTable(object):
         #设置AI训练模式的训练单位
         result = tagOutCardResult()
         if self.ai_type == AILogicType.DeepQTrainLAND.value and self.train_user == self.curpos:
+            logger.debug('get_logistic_out get model logic.')
             loop_counter = 0
             while self.is_new_logic is False: #and loop_counter < 200:
                 time.sleep(0.1)
@@ -233,6 +234,7 @@ class DDZTable(object):
                 result = tagOutCardResult()
             self.is_new_logic = False
         else:
+            logger.debug('get_logistic_out get normal logic.')
             bTurnCardCount = self.bTableInfo.getturncardcount()
             bTurnCardData = self.bTableInfo.getturncarddata()
             result = cur_player.getSearchOutCard(bTurnCardData,bTurnCardCount)
@@ -241,6 +243,7 @@ class DDZTable(object):
                     'retcode' : 0,
                     'errormsg' : 'I have not enable cards.'
                     }
+            logger.debug('get_logistic_out get result:' + str(retinfo))
             return retinfo
         else:
             retinfo = {}
@@ -251,6 +254,7 @@ class DDZTable(object):
                 cardlist[index] = result.cbResultCard[i]
             retinfo['card_result'] = cardlist
             retinfo['retcode'] = 1
+            logger.debug('get_logistic_out get result:' + str(retinfo))
             return retinfo
         
                 
