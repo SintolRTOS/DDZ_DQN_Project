@@ -20,6 +20,7 @@ import copy;
 import queue
 from ddzmachine.ddztable import DDZTable
 from ddzmachine.ddz_env import DDZEnv
+from ddzmachine.ddztable import AILogicType
 from threading import Lock
 import baselines.deepq.deepq as dqn
 import os.path as osp
@@ -136,7 +137,13 @@ class AIMoniterProcess(threading.Thread):
                 table_id = ddztable.gettableid()
                 land_user = ddztable.get_land_user()
                 self.ddz_env = DDZEnv(self.process_id,table_id,land_user,train_user,ddztable)
-                ddztable.set_env(self.ddz_env)
+                if ai_type == AILogicType.DeepQTrainLAND.value:
+                    ddztable.set_land_env(self.ddz_env)
+                elif ai_type == AILogicType.DeepQTrainFARMER_ONE.value:
+                    ddztable.set_one_farmer_env(self.ddz_env)
+                elif ai_type == AILogicType.DeepQTrainFARMER_TWO.value:
+                    ddztable.set_two_farmer_env(self.ddz_env)
+                    
                 self.ai_modle = dqn.learn(
                         env = self.ddz_env,
                         network = 'mlp',

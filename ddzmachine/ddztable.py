@@ -18,7 +18,8 @@ import time
 class AILogicType(enum.Enum):
   Normal = 1 #表示普通的模式
   DeepQTrainLAND = 2 #表示使用DQN算法训练地主的模块
-  DeepQTrainUSER = 3 #表示使用DQN算法训练指定玩家的模块
+  DeepQTrainFARMER_ONE = 3 #表示使用DQN算法训练地主上一个位置的农民
+  DeepQTrainFARMER_TWO = 4 #表示使用DQN算法训练地主下一个位置的农民
   
 
 TOTAL_CARD_COUNT = 54
@@ -65,6 +66,9 @@ class DDZTable(object):
         self.is_new_logic = False
         self.new_logic_result = None
         self.ai_action_type = None
+        self.land_ai_env = None
+        self.one_farmer_ai_env = None
+        self.two_farmer_ai_env = None
     
     def get_land_user(self):
         return self.bTableInfo.getland_user()
@@ -75,8 +79,14 @@ class DDZTable(object):
             self.train_user = self.bTableInfo.getland_user()
         
     
-    def set_env(self,env):
-        self.ai_env = env;
+    def set_land_env(self,env):
+        self.land_ai_env = env
+    
+    def set_one_farmer_env(self,env):
+        self.one_farmer_ai_env = env
+    
+    def set_two_farmer_env(self,env):
+        self.two_farmer_ai_env = env
         
     def get_playerpos_pre(self):
         temp_pos = self.curpos - 1
@@ -236,8 +246,8 @@ class DDZTable(object):
                 time.sleep(0.1)
                 loop_counter = loop_counter + 1
                 logger.debug('get_logistic_out loop_counter' + str(loop_counter))
-                if self.ai_env is not None:
-                    self.ai_env.update_observation(False,True)
+                if self.land_ai_env is not None:
+                    self.land_ai_env.update_observation(False,True)
             result = self.new_logic_result
             if result is None:
                 logger.error('self.new_logic_result is None:' + str(loop_counter))
@@ -318,8 +328,8 @@ class DDZTable(object):
         if self.ai_type == AILogicType.DeepQTrainLAND.value:
             self.set_train_user(land_user)
             if self.train_user == cur_user:
-                if self.ai_env is not None:
-                    self.ai_env.update_observation(False,True)
+                if self.land_ai_env is not None:
+                    self.land_ai_env.update_observation(False,True)
         return True
     
     #查询是否新一轮
@@ -339,8 +349,8 @@ class DDZTable(object):
         #设置AI训练模式的训练单位
         if self.ai_type == AILogicType.DeepQTrainLAND.value:
             if self.train_user == self.curpos:
-                if self.ai_env is not None:
-                    self.ai_env.update_observation(False,True)
+                if self.land_ai_env is not None:
+                    self.land_ai_env.update_observation(False,True)
                       
     #处理游戏出牌
     def sub_s_out_card(self,param):
@@ -371,11 +381,11 @@ class DDZTable(object):
         #设置AI训练模式的训练单位
         if self.ai_type == AILogicType.DeepQTrainLAND.value:
             if self.train_user == self.curpos:
-                if self.ai_env is not None:
+                if self.land_ai_env is not None:
                     if player is not None and player.get_hand_card_count() == 0:
-                        self.ai_env.update_observation(True,True)
+                        self.land_ai_env.update_observation(True,True)
                     else:
-                        self.ai_env.update_observation(False,True)
+                        self.land_ai_env.update_observation(False,True)
         return True
     
     #获得并且使用后清零训练得分
@@ -424,11 +434,11 @@ class DDZTable(object):
         self.ai_action_type = None
         #设置AI训练模式的训练单位
         if self.ai_type == AILogicType.DeepQTrainLAND.value:
-            if self.ai_env is not None:
-                self.ai_env.update_observation(True,True)
+            if self.land_ai_env is not None:
+                self.land_ai_env.update_observation(True,True)
 #            if self.train_user == self.curpos:
-#                if self.ai_env is not None:
-#                    self.ai_env.update_observation(True)
+#                if self.land_ai_env is not None:
+#                    self.land_ai_env.update_observation(True)
     
     def started(self):
         return self.isstarted
