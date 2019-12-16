@@ -133,7 +133,7 @@ class AIMoniterProcess(threading.Thread):
                 ddztable = self.depence_process.ddztable
                 if train_user is not None:
                     ddztable.set_train_user(train_user)
-                ddztable.set_AI_Type(ai_type)
+                ddztable.add_AI_Type(ai_type)
                 table_id = ddztable.gettableid()
                 land_user = ddztable.get_land_user()
                 self.ddz_env = DDZEnv(self.process_id,table_id,land_user,train_user,ddztable)
@@ -302,7 +302,7 @@ class MoniterProcess(threading.Thread):
                 load_model = param['load_model']
                 save_model = param['save_model']
                 seed = param['seed']
-                self.ddztable.set_AI_Type(ai_type)
+                self.ddztable.add_AI_Type(ai_type)
                 if train_user is not None:
                     self.ddztable.set_train_user(train_user)
                 table_id = self.ddztable.gettableid()
