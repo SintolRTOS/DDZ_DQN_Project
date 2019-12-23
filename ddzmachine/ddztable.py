@@ -62,9 +62,17 @@ class DDZTable(object):
         self.curpos = 0
         self.land_train_user = -1
         self.land_train_reward = 0
+        self.one_farmer_train_user = -1
+        self.one_train_reward = 0
+        self.two_farmer_train_user = -1
+        self.two_train_reward = 0
         self.ai_type = AILogicType.Normal.value
         self.is_land_new_logic = False
         self.new_land_logic_result = None
+        self.is_onefarmer_new_logic = False
+        self.new_onefarmer_logic_result = None
+        self.is_twofarmer_new_logic = False
+        self.new_twofarmer_logic_result = None
         self.ai_land_action_type = None
         self.land_ai_env = None
         self.one_farmer_ai_env = None
@@ -81,6 +89,10 @@ class DDZTable(object):
         if self.ai_type_list.__contains__(AILogicType.DeepQTrainLAND.value):
 #        if self.ai_type == AILogicType.DeepQTrainLAND.value:
             self.land_train_user = self.bTableInfo.getland_user()
+        if self.ai_type_list.__contains__(AILogicType.DeepQTrainFARMER_ONE.value):
+            self.one_farmer_train_user = self.bTableInfo.getone_farmer_user()
+        if self.ai_type_list.__contains__(AILogicType.DeepQTrainFARMER_TWO.value):
+            self.two_farmer_train_user = self.bTableInfo.gettwo_farmer_user()
         
     
     def set_land_env(self,env):
@@ -107,6 +119,18 @@ class DDZTable(object):
     
     def set_train_user(self,user):
         self.land_train_user = user
+        if self.land_ai_env is not None:
+            self.land_ai_env.set_train_user(self.land_train_user)
+    
+    def set_one_farmer_train_user(self,user):
+        self.one_farmer_train_user = user
+        if self.one_farmer_ai_env is not None:
+            self.one_farmer_ai_env.set_train_user(self.one_farmer_train_user)
+    
+    def set_two_farmer_train_user(self,user):
+        self.two_farmer_train_user = user
+        if self.two_farmer_ai_env is not None:
+            self.two_farmer_ai_env.set_train_user(self.two_farmer_train_user)
     
     def get_cur_pos(self):
         return self.curpos
@@ -209,18 +233,43 @@ class DDZTable(object):
                 return player
         return None
     
-    def set_ai_logistic_out(self,action_type,out_card_result):
-        if action_type == ACTION_LOGIC_TYPE_CANCEL:
-            self.new_land_logic_result = tagOutCardResult()
-        else:
-            self.new_land_logic_result = out_card_result       
-        self.ai_land_action_type = action_type
-        self.is_land_new_logic = True
-        logger.debug('ddztable set_ai_logistic_out cur_player:' 
-                     + str(self.ai_land_action_type)
-                     + ',' + str(self.is_land_new_logic)
-                     + ',' + str(self.new_land_logic_result.cbCardCount)
-                     + ',' + str(self.new_land_logic_result.cbResultCard))
+    def set_ai_logistic_out(self,action_type,out_card_result,train_user):
+        if train_user == self.land_train_user:
+            if action_type == ACTION_LOGIC_TYPE_CANCEL:
+                self.new_land_logic_result = tagOutCardResult()
+            else:
+                self.new_land_logic_result = out_card_result       
+            self.ai_land_action_type = action_type
+            self.is_land_new_logic = True
+            logger.debug('ddztable land_train_user set_ai_logistic_out cur_player:' 
+                         + str(self.ai_land_action_type)
+                         + ',' + str(self.is_land_new_logic)
+                         + ',' + str(self.new_land_logic_result.cbCardCount)
+                         + ',' + str(self.new_land_logic_result.cbResultCard))
+        elif train_user == self.one_farmer_train_user:
+            if action_type == ACTION_LOGIC_TYPE_CANCEL:
+                self.new_onefarmer_logic_result = tagOutCardResult()
+            else:
+                self.new_onefarmer_logic_result = out_card_result       
+            self.ai_land_action_type = action_type
+            self.is_onefarmer_new_logic = True
+            logger.debug('ddztable one_farmer_train_user set_ai_logistic_out cur_player:' 
+                         + str(self.ai_land_action_type)
+                         + ',' + str(self.is_onefarmer_new_logic)
+                         + ',' + str(self.new_onefarmer_logic_result.cbCardCount)
+                         + ',' + str(self.new_onefarmer_logic_result.cbResultCard))
+        elif train_user == self.two_farmer_train_user:
+            if action_type == ACTION_LOGIC_TYPE_CANCEL:
+                self.new_twofarmer_logic_result = tagOutCardResult()
+            else:
+                self.new_twofarmer_logic_result = out_card_result       
+            self.ai_land_action_type = action_type
+            self.is_twofarmer_new_logic = True
+            logger.debug('ddztable two_farmer_train_user set_ai_logistic_out cur_player:' 
+                         + str(self.ai_land_action_type)
+                         + ',' + str(self.is_twofarmer_new_logic)
+                         + ',' + str(self.new_twofarmer_logic_result.cbCardCount)
+                         + ',' + str(self.new_twofarmer_logic_result.cbResultCard))
         
     
     def get_logistic_out(self):
@@ -244,7 +293,7 @@ class DDZTable(object):
         #设置AI训练模式的训练单位
         result = tagOutCardResult()
         if self.ai_type_list.__contains__(AILogicType.DeepQTrainLAND.value) and self.land_train_user == self.curpos:
-            logger.debug('get_logistic_out get model logic.')
+            logger.debug('DeepQTrainLAND get_logistic_out get model logic.')
             loop_counter = 0
             while self.is_land_new_logic is False: #and loop_counter < 200:
                 time.sleep(0.1)
@@ -257,6 +306,34 @@ class DDZTable(object):
                 logger.error('self.new_land_logic_result is None:' + str(loop_counter))
                 result = tagOutCardResult()
             self.is_land_new_logic = False
+        elif self.ai_type_list.__contains__(AILogicType.DeepQTrainFARMER_ONE.value) and self.one_farmer_train_user == self.curpos:
+            logger.debug('DeepQTrainFARMER_ONE get_logistic_out get model logic.')
+            loop_counter = 0
+            while self.is_onefarmer_new_logic is False: #and loop_counter < 200:
+                time.sleep(0.1)
+                loop_counter = loop_counter + 1
+                logger.debug('get_logistic_out loop_counter' + str(loop_counter))
+                if self.one_farmer_ai_env is not None:
+                    self.one_farmer_ai_env.update_observation(False,True)
+            result = self.new_onefarmer_logic_result
+            if result is None:
+                logger.error('self.new_onefarmer_logic_result is None:' + str(loop_counter))
+                result = tagOutCardResult()
+            self.is_onefarmer_new_logic = False
+        elif self.ai_type_list.__contains__(AILogicType.DeepQTrainFARMER_TWO.value) and self.two_farmer_train_user == self.curpos:
+            logger.debug('DeepQTrainFARMER_TWO get_logistic_out get model logic.')
+            loop_counter = 0
+            while self.is_twofarmer_new_logic is False: #and loop_counter < 200:
+                time.sleep(0.1)
+                loop_counter = loop_counter + 1
+                logger.debug('get_logistic_out loop_counter' + str(loop_counter))
+                if self.two_farmer_ai_env is not None:
+                    self.two_farmer_ai_env.update_observation(False,True)
+            result = self.new_twofarmer_logic_result
+            if result is None:
+                logger.error('self.new_twofarmer_logic_result is None:' + str(loop_counter))
+                result = tagOutCardResult()
+            self.is_twofarmer_new_logic = False
         else:
             logger.debug('get_logistic_out get normal logic.')
             bTurnCardCount = self.bTableInfo.getturncardcount()
@@ -329,17 +406,33 @@ class DDZTable(object):
             land_player.add_backcard(back_card)
         
         #设置AI训练模式的训练单位
+        self.set_train_user(land_user)
+        self.set_one_farmer_train_user(self.bTableInfo.getone_farmer_user())
+        self.set_two_farmer_train_user(self.bTableInfo.gettwo_farmer_user())
         if self.ai_type_list.__contains__(AILogicType.DeepQTrainLAND.value):
-            self.set_train_user(land_user)
             if self.land_train_user == cur_user:
                 if self.land_ai_env is not None:
                     self.is_land_new_logic = False
                     self.land_ai_env.update_observation(False,True)
+                    
+        if self.ai_type_list.__contains__(AILogicType.DeepQTrainFARMER_ONE.value):
+            if self.one_farmer_train_user == cur_user:
+                if self.one_farmer_ai_env is not None:
+                    self.is_onefarmer_new_logic = False
+                    self.one_farmer_ai_env.update_observation(False,True)
+        
+        if self.ai_type_list.__contains__(AILogicType.DeepQTrainFARMER_TWO.value):
+            if self.two_farmer_train_user == cur_user:
+                if self.two_farmer_ai_env is not None:
+                    self.is_twofarmer_new_logic = False
+                    self.two_farmer_ai_env.update_observation(False,True)
         return True
     
     #查询是否新一轮
     def is_new_turn(self):
         return self.bTableInfo.is_new_turn()
+    
+    #判断是否是
     
     #处理过牌的逻辑
     def sub_s_pass_card(self,param):
@@ -357,6 +450,18 @@ class DDZTable(object):
                 if self.land_ai_env is not None:
                     self.is_land_new_logic = False
                     self.land_ai_env.update_observation(False,True)
+        
+        if self.ai_type_list.__contains__(AILogicType.DeepQTrainFARMER_ONE.value):
+            if self.one_farmer_train_user == self.curpos:
+                if self.one_farmer_ai_env is not None:
+                    self.is_onefarmer_new_logic = False
+                    self.one_farmer_ai_env.update_observation(False,True)
+        
+        if self.ai_type_list.__contains__(AILogicType.DeepQTrainFARMER_TWO.value):
+            if self.two_farmer_train_user == self.curpos:
+                if self.two_farmer_ai_env is not None:
+                    self.is_twofarmer_new_logic = False
+                    self.two_farmer_ai_env.update_observation(False,True)
                       
     #处理游戏出牌
     def sub_s_out_card(self,param):
@@ -381,9 +486,25 @@ class DDZTable(object):
         #计算训练得分
         if self.ai_type_list.__contains__(AILogicType.DeepQTrainLAND.value):         
             if self.land_train_user == out_card_user:
-                self.land_train_reward += card_count
+                self.land_train_reward = self.land_train_reward + card_count
             else:
-                self.land_train_reward -= card_count
+                self.land_train_reward = self.land_train_reward - card_count
+                
+        if self.ai_type_list.__contains__(AILogicType.DeepQTrainFARMER_ONE.value):         
+            if self.land_train_user == out_card_user:
+                self.one_train_reward = self.one_train_reward - card_count
+            elif self.one_farmer_train_user == out_card_user:
+                self.one_train_reward = self.one_train_reward + card_count
+            else:
+                self.one_train_reward = self.one_train_reward + (card_count / 2)
+        if self.ai_type_list.__contains__(AILogicType.DeepQTrainFARMER_TWO.value):         
+            if self.land_train_user == out_card_user:
+                self.two_train_reward = self.one_train_reward - card_count
+            elif self.two_farmer_train_user == out_card_user:
+                self.two_train_reward = self.one_train_reward + card_count
+            else:
+                self.two_train_reward = self.one_train_reward + (card_count / 2)
+        
         #设置AI训练模式的训练单位
         if self.ai_type_list.__contains__(AILogicType.DeepQTrainLAND.value):
             if self.land_train_user == self.curpos:
@@ -394,12 +515,38 @@ class DDZTable(object):
                     else:
                         self.is_land_new_logic = False
                         self.land_ai_env.update_observation(False,True)
+        if self.ai_type_list.__contains__(AILogicType.DeepQTrainFARMER_ONE.value):
+            if self.one_farmer_train_user == self.curpos:
+                if self.one_farmer_ai_env is not None:
+                    if player is not None and player.get_hand_card_count() == 0:
+                        self.is_onefarmer_new_logic = False
+                        self.one_farmer_ai_env.update_observation(True,True)
+                    else:
+                        self.is_onefarmer_new_logic = False
+                        self.one_farmer_ai_env.update_observation(False,True)
+        if self.ai_type_list.__contains__(AILogicType.DeepQTrainFARMER_TWO.value):
+            if self.two_farmer_train_user == self.curpos:
+                if self.two_farmer_ai_env is not None:
+                    if player is not None and player.get_hand_card_count() == 0:
+                        self.is_twofarmer_new_logic = False
+                        self.two_farmer_ai_env.update_observation(True,True)
+                    else:
+                        self.is_twofarmer_new_logic = False
+                        self.two_farmer_ai_env.update_observation(False,True)
         return True
     
     #获得并且使用后清零训练得分
-    def get_train_reward(self):
-        reward = self.land_train_reward
-        self.land_train_reward = 0
+    def get_train_reward(self,user):
+        reward = 0
+        if user == self.land_train_user:
+            reward = self.land_train_reward
+            self.land_train_reward = 0
+        elif user == self.one_farmer_train_user:
+            reward = self.one_train_reward
+            self.one_train_reward = 0
+        elif user == self.two_farmer_train_user:
+            reward = self.two_train_reward
+            self.two_train_reward = 0
         return reward
     
     def sub_s_land_score(self,param):
@@ -439,6 +586,15 @@ class DDZTable(object):
         self.land_train_reward = 0
         self.is_land_new_logic = False
         self.new_land_logic_result = None
+        
+        self.one_train_reward = 0
+        self.is_onefarmer_new_logic = False
+        self.new_onefarmer_logic_result = None
+        
+        self.two_train_reward = 0
+        self.is_twofarmer_new_logic = False
+        self.new_twofarmer_logic_result = None
+        
         self.ai_land_action_type = None
         #设置AI训练模式的训练单位
         if self.ai_type_list.__contains__(AILogicType.DeepQTrainLAND.value):
@@ -448,6 +604,15 @@ class DDZTable(object):
 #            if self.train_user == self.curpos:
 #                if self.land_ai_env is not None:
 #                    self.land_ai_env.update_observation(True)
+        if self.ai_type_list.__contains__(AILogicType.DeepQTrainFARMER_ONE.value):
+            if self.one_farmer_ai_env is not None:
+                self.is_onefarmer_new_logic = False
+                self.one_farmer_ai_env.update_observation(True,True)
+        
+        if self.ai_type_list.__contains__(AILogicType.DeepQTrainFARMER_TWO.value):
+            if self.two_farmer_ai_env is not None:
+                self.is_twofarmer_new_logic = False
+                self.two_farmer_ai_env.update_observation(True,True)
     
     def started(self):
         return self.isstarted

@@ -41,6 +41,18 @@ class TableInfo(object):
     def getland_user(self):
         return self.bland_user
     
+    def getone_farmer_user(self):
+        one_farmer_pos = self.bland_user - 1
+        if one_farmer_pos < 0:
+            one_farmer_pos = 2
+        return one_farmer_pos
+    
+    def gettwo_farmer_user(self):
+        two_farmer_pos = self.bland_user + 1
+        if two_farmer_pos > 2:
+            two_farmer_pos = 0
+        return two_farmer_pos
+    
     def setlanduser(self,land_user):
         self.bland_user = land_user
     

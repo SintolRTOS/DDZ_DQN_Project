@@ -220,8 +220,12 @@ class DDZEnv(environment.Base):
         if self.out_card_list is not None:
             self.out_card_list.clear()
         self.table_id = self.ddztable.gettableid()
+        self.train_user = 0
         logger.debug('DDZEnv reset end:' + str(self.process_id))
         return self.get_obs()
+    
+    def set_train_user(self,user):
+        self.train_user = user
     
     def render(self):
         return True
@@ -274,12 +278,12 @@ class DDZEnv(environment.Base):
         logger.debug('DDZEnv do_action action_type:' + str(action_type))
         logger.debug('DDZEnv do_action out_card_result:' + str(out_card_result))
         if self.ddztable is not None:
-            self.ddztable.set_ai_logistic_out(action_type,out_card_result)
+            self.ddztable.set_ai_logistic_out(action_type,out_card_result,self.train_user)
         while True:
             time.sleep(0.1)
             if self.is_continue:
                 break
-        reward = self.ddztable.get_train_reward()
+        reward = self.ddztable.get_train_reward(self.train_user)
         self.is_continue = False
         logger.debug('DDZEnv do_action end.')
         return reward
