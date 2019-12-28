@@ -29,7 +29,7 @@ import inspect
 import ctypes
 
 #mutex=Lock()
-ai_mutex = Lock()
+#ai_mutex = Lock()
 
 global NOISE_TYPE_WORD
 NOISE_TYPE_WORD = '--noise_type=adaptive-param_0.2,normal_0.1'
@@ -90,6 +90,7 @@ class AIMoniterProcess(threading.Thread):
         self.ai_modle = None
         self.params = queue.Queue()
         self.is_play_model = False
+        self.ai_mutex=Lock()
     
     def run(self):
         print('Starting ai_thread' + self.name)
@@ -97,14 +98,14 @@ class AIMoniterProcess(threading.Thread):
         print('Exiting ai_thread' + self.name)
     
     def doaction(self):
-        ai_mutex.acquire()
+        self.ai_mutex.acquire()
         logger.info('ai doAction start.')
         for i in range(self.params.qsize()):
             param = self.params.get()
             self.parseaction(param)
         self.isacceted = False
         logger.info('ai doAction end.')
-        ai_mutex.release()
+        self.ai_mutex.release()
     
     def start_run_process(self):
         if self.isstarted == True:
@@ -443,7 +444,7 @@ class Moniter(object):
         #mutex.release()
         return None
     
-    def do_ai_process(self,process_id,param):
+    def run_ai_process(self,process_id,ai_process_id,param):
         #mutex.acquire()
         retinfo = {}
         retinfo['retcode'] = -1
@@ -456,7 +457,7 @@ class Moniter(object):
             else:
                 process = self.processdic[process_id]
                 # 创建AI训练新线程
-                ai_process_id = process_id
+                ai_process_id = ai_process_id
                 ai_moniter_process = AIMoniterProcess(ai_process_id,'ai_moniter_' + str(ai_process_id),ai_process_id,process)
                 self.ai_processdic[ai_process_id] = ai_moniter_process
                 ai_moniter_process.start()

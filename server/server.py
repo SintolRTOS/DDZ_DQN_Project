@@ -20,6 +20,8 @@ PORT_NUMBER = 9090
 CONIFRM_PATH = '/tmp'
 global PROCESS_ID
 PROCESS_ID = 0
+global AI_PROCESS_ID
+AI_PROCESS_ID = 0
 from moniter import Moniter
 global moniterimp
 moniterimp = Moniter()
@@ -95,6 +97,7 @@ class DQN_Server(http.server.BaseHTTPRequestHandler):
     def handler(self,action_id,json_data,reward_type = None):
         
         global PROCESS_ID
+        global AI_PROCESS_ID
         action_ret = {}
         action_ret['retcode'] = 1
         action_ret['retinfo'] = None
@@ -131,7 +134,8 @@ class DQN_Server(http.server.BaseHTTPRequestHandler):
         elif action_id == int(ActionType.START_DEEPQ_PROCESS.value):
             process_id = json_data['process_id']
             param = json_data['param']
-            retinfo = moniterimp.do_ai_process(process_id,param)
+            AI_PROCESS_ID += 1
+            retinfo = moniterimp.run_ai_process(process_id,AI_PROCESS_ID,param)
             if retinfo is None:
                 action_ret['retcode'] = -1
             action_ret['retinfo'] = retinfo

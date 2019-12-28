@@ -96,12 +96,15 @@ class DDZTable(object):
         
     
     def set_land_env(self,env):
+        logger.debug('set_land_env:' + str(env))
         self.land_ai_env = env
     
     def set_one_farmer_env(self,env):
+        logger.debug('set_one_farmer_env:' + str(env))
         self.one_farmer_ai_env = env
     
     def set_two_farmer_env(self,env):
+        logger.debug('set_two_farmer_env:' + str(env))
         self.two_farmer_ai_env = env
         
     def get_playerpos_pre(self):
@@ -118,16 +121,19 @@ class DDZTable(object):
         return temp_pos
     
     def set_train_user(self,user):
+        logger.debug('set_train_user:' + str(user))
         self.land_train_user = user
         if self.land_ai_env is not None:
             self.land_ai_env.set_train_user(self.land_train_user)
     
     def set_one_farmer_train_user(self,user):
+        logger.debug('set_one_farmer_train_user:' + str(user))
         self.one_farmer_train_user = user
         if self.one_farmer_ai_env is not None:
             self.one_farmer_ai_env.set_train_user(self.one_farmer_train_user)
     
     def set_two_farmer_train_user(self,user):
+        logger.debug('set_two_farmer_train_user:' + str(user))
         self.two_farmer_train_user = user
         if self.two_farmer_ai_env is not None:
             self.two_farmer_ai_env.set_train_user(self.two_farmer_train_user)
@@ -413,18 +419,21 @@ class DDZTable(object):
             if self.land_train_user == cur_user:
                 if self.land_ai_env is not None:
                     self.is_land_new_logic = False
+                    logger.debug('self.land_ai_env.update_observation(False,True)')
                     self.land_ai_env.update_observation(False,True)
                     
         if self.ai_type_list.__contains__(AILogicType.DeepQTrainFARMER_ONE.value):
             if self.one_farmer_train_user == cur_user:
                 if self.one_farmer_ai_env is not None:
                     self.is_onefarmer_new_logic = False
+                    logger.debug('self.one_farmer_ai_env.update_observation(False,True)')
                     self.one_farmer_ai_env.update_observation(False,True)
         
         if self.ai_type_list.__contains__(AILogicType.DeepQTrainFARMER_TWO.value):
             if self.two_farmer_train_user == cur_user:
                 if self.two_farmer_ai_env is not None:
                     self.is_twofarmer_new_logic = False
+                    logger.debug('self.two_farmer_ai_env.update_observation(False,True)')
                     self.two_farmer_ai_env.update_observation(False,True)
         return True
     
@@ -449,18 +458,21 @@ class DDZTable(object):
             if self.land_train_user == self.curpos:
                 if self.land_ai_env is not None:
                     self.is_land_new_logic = False
+                    logger.debug('self.land_ai_env.update_observation(False,True)')
                     self.land_ai_env.update_observation(False,True)
         
         if self.ai_type_list.__contains__(AILogicType.DeepQTrainFARMER_ONE.value):
             if self.one_farmer_train_user == self.curpos:
                 if self.one_farmer_ai_env is not None:
                     self.is_onefarmer_new_logic = False
+                    logger.debug('self.one_farmer_ai_env.update_observation(False,True)')
                     self.one_farmer_ai_env.update_observation(False,True)
         
         if self.ai_type_list.__contains__(AILogicType.DeepQTrainFARMER_TWO.value):
             if self.two_farmer_train_user == self.curpos:
                 if self.two_farmer_ai_env is not None:
                     self.is_twofarmer_new_logic = False
+                    logger.debug('self.two_farmer_ai_env.update_observation(False,True)')
                     self.two_farmer_ai_env.update_observation(False,True)
                       
     #处理游戏出牌
@@ -511,28 +523,34 @@ class DDZTable(object):
                 if self.land_ai_env is not None:
                     if player is not None and player.get_hand_card_count() == 0:
                         self.is_land_new_logic = False
+                        logger.debug('sub_s_out_card self.land_ai_env.update_observation(True,True)')
                         self.land_ai_env.update_observation(True,True)
                     else:
                         self.is_land_new_logic = False
+                        logger.debug('sub_s_out_card self.land_ai_env.update_observation(False,True)')
                         self.land_ai_env.update_observation(False,True)
         if self.ai_type_list.__contains__(AILogicType.DeepQTrainFARMER_ONE.value):
             if self.one_farmer_train_user == self.curpos:
                 if self.one_farmer_ai_env is not None:
                     if player is not None and player.get_hand_card_count() == 0:
                         self.is_onefarmer_new_logic = False
+                        logger.debug('sub_s_out_card self.one_farmer_ai_env.update_observation(True,True)')
                         self.one_farmer_ai_env.update_observation(True,True)
                     else:
                         self.is_onefarmer_new_logic = False
+                        logger.debug('sub_s_out_card self.one_farmer_ai_env.update_observation(False,True)')
                         self.one_farmer_ai_env.update_observation(False,True)
         if self.ai_type_list.__contains__(AILogicType.DeepQTrainFARMER_TWO.value):
             if self.two_farmer_train_user == self.curpos:
                 if self.two_farmer_ai_env is not None:
                     if player is not None and player.get_hand_card_count() == 0:
                         self.is_twofarmer_new_logic = False
+                        logger.debug('sub_s_out_card self.two_farmer_ai_env.update_observation(True,True)')
                         self.two_farmer_ai_env.update_observation(True,True)
                     else:
                         self.is_twofarmer_new_logic = False
                         self.two_farmer_ai_env.update_observation(False,True)
+                        logger.debug('sub_s_out_card self.two_farmer_ai_env.update_observation(False,True)')
         return True
     
     #获得并且使用后清零训练得分
@@ -547,6 +565,43 @@ class DDZTable(object):
         elif user == self.two_farmer_train_user:
             reward = self.two_train_reward
             self.two_train_reward = 0
+            
+        player = self.getplayer(user)
+        logger.debug('DDZTable get_train_reward player:' + str(player))
+        
+        if self.ai_type_list.__contains__(AILogicType.DeepQTrainLAND.value):
+            if self.land_train_user == user:
+                if self.land_ai_env is not None:
+                    if player is not None and player.get_hand_card_count() == 0:
+                        self.is_land_new_logic = False
+                        logger.debug('get_train_reward self.land_ai_env.update_observation(True,True)')
+                        self.land_ai_env.update_observation(True,True)
+                    else:
+                        self.is_land_new_logic = False
+                        logger.debug('get_train_reward self.land_ai_env.update_observation(False,True)')
+                        self.land_ai_env.update_observation(False,True)
+        if self.ai_type_list.__contains__(AILogicType.DeepQTrainFARMER_ONE.value):
+            if self.one_farmer_train_user == user:
+                if self.one_farmer_ai_env is not None:
+                    if player is not None and player.get_hand_card_count() == 0:
+                        self.is_onefarmer_new_logic = False
+                        logger.debug('get_train_reward self.one_farmer_ai_env.update_observation(True,True)')
+                        self.one_farmer_ai_env.update_observation(True,True)
+                    else:
+                        self.is_onefarmer_new_logic = False
+                        logger.debug('get_train_reward self.one_farmer_ai_env.update_observation(False,True)')
+                        self.one_farmer_ai_env.update_observation(False,True)
+        if self.ai_type_list.__contains__(AILogicType.DeepQTrainFARMER_TWO.value):
+            if self.two_farmer_train_user == user:
+                if self.two_farmer_ai_env is not None:
+                    if player is not None and player.get_hand_card_count() == 0:
+                        self.is_twofarmer_new_logic = False
+                        logger.debug('get_train_reward self.two_farmer_ai_env.update_observation(True,True)')
+                        self.two_farmer_ai_env.update_observation(True,True)
+                    else:
+                        self.is_twofarmer_new_logic = False
+                        self.two_farmer_ai_env.update_observation(False,True)
+                        logger.debug('get_train_reward self.two_farmer_ai_env.update_observation(False,True)')
         return reward
     
     def sub_s_land_score(self,param):
@@ -600,6 +655,7 @@ class DDZTable(object):
         if self.ai_type_list.__contains__(AILogicType.DeepQTrainLAND.value):
             if self.land_ai_env is not None:
                 self.is_land_new_logic = False
+                logger.debug('self.land_ai_env.update_observation(True,True)')
                 self.land_ai_env.update_observation(True,True)
 #            if self.train_user == self.curpos:
 #                if self.land_ai_env is not None:
@@ -607,11 +663,13 @@ class DDZTable(object):
         if self.ai_type_list.__contains__(AILogicType.DeepQTrainFARMER_ONE.value):
             if self.one_farmer_ai_env is not None:
                 self.is_onefarmer_new_logic = False
+                logger.debug('self.one_farmer_ai_env.update_observation(True,True)')
                 self.one_farmer_ai_env.update_observation(True,True)
         
         if self.ai_type_list.__contains__(AILogicType.DeepQTrainFARMER_TWO.value):
             if self.two_farmer_ai_env is not None:
                 self.is_twofarmer_new_logic = False
+                logger.debug('self.two_farmer_ai_env.update_observation(True,True)')
                 self.two_farmer_ai_env.update_observation(True,True)
     
     def started(self):

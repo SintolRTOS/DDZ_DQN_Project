@@ -220,7 +220,8 @@ class DDZEnv(environment.Base):
         if self.out_card_list is not None:
             self.out_card_list.clear()
         self.table_id = self.ddztable.gettableid()
-        self.train_user = 0
+        self.is_continue = False
+#        self.train_user = 0
         logger.debug('DDZEnv reset end:' + str(self.process_id))
         return self.get_obs()
     
