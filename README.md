@@ -1,4 +1,4 @@
-# DDZ_DQN_Project
+﻿# DDZ_DQN_Project
 it's the project DQN Algorim for the DDZ Game
 -------------------------------------------------------------------------------------------------------------
 ## 使用说明
@@ -684,3 +684,101 @@ SUB_S_OUT_CARD    =104         #放弃出牌
 - 具体的访问地址请按照实际情况确定
 
 -----------------------------------------------------------------------------------------------------------
+
+-----------------------------------------------------------------------------------------------------------
+
+**简要描述：** 
+
+- 这个接口用于启动AI的训练模型，启动训练态和运行态
+
+**请求URL：** 
+- ` ：9090 `
+
+**请求方式：**
+- POST(HTTPS)
+
+**系统级参数：**
+
+|参数名|必选|类型|说明|
+|:----    |:---|:----- |-----   |
+|id |是  |int |消息id   |
+|num_timesteps |否  |int |训练参数，默认：100万   |
+|reward_type |否  |int |博弈类型 默认：0   |
+|process_id |否  |int |进程号 默认：0   |
+|param |否  |json |  |
+|action_id |是  |int |操作方式  
+    #启动操作进程
+    START_ACTION_PROCESS = 1
+    #查询进程结果
+    QUERY_ACTION_PROCESS = 2
+    #关闭操作进程
+    END_ACTION_PROCESS = 3
+    #操作进程
+    DO_ACTION_PROCESS = 4
+    #获取AI推荐策略
+    GET_ACTION_PROCESS = 5 
+    #启动神经网络训练模型 
+    START_DEEPQ_PROCESS = 6 
+
+**请求模型类型**
+ai_type用来表示：
+class AILogicType(enum.Enum):
+  Normal = 1 #表示普通的模式
+  DeepQTrainLAND = 2 #表示使用DQN算法训练地主的模块
+  DeepQTrainFARMER_ONE = 3 #表示使用DQN算法训练地主上一个位置的农民
+  DeepQTrainFARMER_TWO = 4 #表示使用DQN算法训练地主下一个位置的农民
+
+
+**请求示例**
+**启动地主的训练模型**
+{
+ "id":0,
+ "action_id":6,
+ "num_timesteps":100000,
+ "reward_type":1,
+ "process_id":1,
+ "param":{
+  "action_id":1,
+  "ai_type":2,
+  "train_user":0,
+  "load_model": "./dqnmode_1203.pkl",
+  "save_model": "./dqnmode_1203_land.pkl",
+  "seed":null
+ }
+}
+
+**请求示例**
+**启动地主上一个位置的农民的训练模型**
+{
+ "id":0,
+ "action_id":6,
+ "num_timesteps":100000,
+ "reward_type":1,
+ "process_id":1,
+ "param":{
+  "action_id":1,
+  "ai_type":3,
+  "train_user":0,
+  "load_model": "./dqnmode_1203.pkl",
+  "save_model": "./dqnmode_1203_farmer_one.pkl",
+  "seed":null
+ }
+}
+
+**请求示例**
+**启动地主下一个位置的农民的训练模型**
+{
+ "id":0,
+ "action_id":6,
+ "num_timesteps":100000,
+ "reward_type":1,
+ "process_id":1,
+ "param":{
+  "action_id":1,
+  "ai_type":4,
+  "train_user":0,
+  "load_model": "./dqnmode_1203.pkl",
+  "save_model": "./dqnmode_1203_farmer_two.pkl",
+  "seed":null
+ }
+}
