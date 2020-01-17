@@ -14,6 +14,7 @@ from ddzmachine.table import TableInfo
 from ddzmachine.player import tagOutCardResult
 import enum
 import time
+from threading import Lock
 
 class AILogicType(enum.Enum):
   Normal = 1 #表示普通的模式
@@ -78,6 +79,7 @@ class DDZTable(object):
         self.one_farmer_ai_env = None
         self.two_farmer_ai_env = None
         self.ai_type_list = []
+        self.mutex = Lock()
     
     def get_land_user(self):
         return self.bTableInfo.getland_user()
@@ -150,6 +152,7 @@ class DDZTable(object):
         
     def get_observation(self,_obs):
         """create and get the RL obervation information"""
+        self.mutex.acquire()
         #create cur_player feature
         cur_player = self.getplayer(self.curpos)
         if cur_player is not None:
@@ -196,6 +199,7 @@ class DDZTable(object):
         
         #create out_card_logic
         if cur_player is None:
+            self.mutex.release()
             return None
         bTurnCardCount = self.bTableInfo.getturncardcount()
         bTurnCardData = self.bTableInfo.getturncarddata()
@@ -223,6 +227,7 @@ class DDZTable(object):
             out_card_result_four = out_card_list[3]
             for i in range(out_card_result_four.cbCardCount):
                 logic_four[i] = out_card_result_four.cbResultCard[i]
+        self.mutex.release()
         return out_card_list
                
 
@@ -240,6 +245,7 @@ class DDZTable(object):
         return None
     
     def set_ai_logistic_out(self,action_type,out_card_result,train_user):
+        self.mutex.acquire()
         if train_user == self.land_train_user:
             if action_type == ACTION_LOGIC_TYPE_CANCEL:
                 self.new_land_logic_result = tagOutCardResult()
@@ -277,14 +283,18 @@ class DDZTable(object):
                          + ',' + str(self.new_twofarmer_logic_result.cbCardCount)
                          + ',' + str(self.new_twofarmer_logic_result.cbResultCard))
         
+        self.mutex.release()
+        
     
     def get_logistic_out(self):
+        self.mutex.acquire()
         if self.isstarted == False:
             retinfo = {
                     'retcode' : 0,
                     'errormsg' : 'ddztable is not started.'
                     }
             logger.debug('get_logistic_out get result:' + str(retinfo))
+            self.mutex.release()
             return retinfo
         logger.debug('get_logistic_out cur_player:' + str(self.curpos))
         cur_player = self.getplayer(self.curpos)
@@ -294,6 +304,7 @@ class DDZTable(object):
                     'errormsg' : 'cur_player is not exsited.'
                     }
             logger.debug('get_logistic_out get result:' + str(retinfo))
+            self.mutex.release()
             return retinfo
         
         #设置AI训练模式的训练单位
@@ -351,6 +362,7 @@ class DDZTable(object):
                     'errormsg' : 'I have not enable cards.'
                     }
             logger.debug('get_logistic_out get result:' + str(retinfo))
+            self.mutex.release()
             return retinfo
         else:
             retinfo = {}
@@ -362,11 +374,13 @@ class DDZTable(object):
             retinfo['card_result'] = cardlist
             retinfo['retcode'] = 1
             logger.debug('get_logistic_out get result:' + str(retinfo))
+            self.mutex.release()
             return retinfo
         
                 
     
     def sub_s_send_card(self,param):
+        self.mutex.acquire()
         logger.info('DDZTable sub_s_send_card:' + str(param))
         backcard = param['backcard']
         curpos = param['curpos']
@@ -387,9 +401,11 @@ class DDZTable(object):
             logger.debug('player:' + str(player_pos) + ',' + str(player))
             if player is not None:
                 player.sub_s_sendcard(playerinfo)
+        self.mutex.release()
                 
     #处理游戏开始            
     def sub_s_game_start(self,param):
+        self.mutex.acquire()
         logger.info('DDZTable sub_s_game_start:' + str(param))
         land_user = param['land_user']
         land_score = param['land_score']
@@ -435,6 +451,7 @@ class DDZTable(object):
                     self.is_twofarmer_new_logic = False
                     logger.debug('self.two_farmer_ai_env.update_observation(False,True)')
                     self.two_farmer_ai_env.update_observation(False,True)
+        self.mutex.release()
         return True
     
     #查询是否新一轮
@@ -445,6 +462,7 @@ class DDZTable(object):
     
     #处理过牌的逻辑
     def sub_s_pass_card(self,param):
+        self.mutex.acquire()
         logger.info('DDZTable sub_s_pass_card:' + str(param))
         new_turn = param['new_turn']
 #        pass_user = param['pass_user']
@@ -474,9 +492,11 @@ class DDZTable(object):
                     self.is_twofarmer_new_logic = False
                     logger.debug('self.two_farmer_ai_env.update_observation(False,True)')
                     self.two_farmer_ai_env.update_observation(False,True)
+        self.mutex.release()
                       
     #处理游戏出牌
     def sub_s_out_card(self,param):
+        self.mutex.acquire()
         logger.info('DDZTable sub_s_out_card:' + str(param))
         card_count = param['card_count']
         cur_user = param['cur_user']
@@ -551,10 +571,12 @@ class DDZTable(object):
                         self.is_twofarmer_new_logic = False
                         self.two_farmer_ai_env.update_observation(False,True)
                         logger.debug('sub_s_out_card self.two_farmer_ai_env.update_observation(False,True)')
+        self.mutex.release()
         return True
     
     #获得并且使用后清零训练得分
     def get_train_reward(self,user):
+        self.mutex.acquire()
         reward = 0
         if user == self.land_train_user:
             reward = self.land_train_reward
@@ -602,6 +624,7 @@ class DDZTable(object):
                         self.is_twofarmer_new_logic = False
                         self.two_farmer_ai_env.update_observation(False,True)
                         logger.debug('get_train_reward self.two_farmer_ai_env.update_observation(False,True)')
+        self.mutex.release()
         return reward
     
     def sub_s_land_score(self,param):
@@ -628,6 +651,7 @@ class DDZTable(object):
         self.bTableInfo.parse(params)
     
     def clear(self):
+        self.mutex.acquire()
         logger.info('ddztable clear.')
         self.bTotalCard.clear()
         self.bTableCard.clear()
@@ -671,6 +695,7 @@ class DDZTable(object):
                 self.is_twofarmer_new_logic = False
                 logger.debug('self.two_farmer_ai_env.update_observation(True,True)')
                 self.two_farmer_ai_env.update_observation(True,True)
+        self.mutex.release()
     
     def started(self):
         return self.isstarted
