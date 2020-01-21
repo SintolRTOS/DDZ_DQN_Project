@@ -287,14 +287,14 @@ class DDZTable(object):
         
     
     def get_logistic_out(self):
-        self.mutex.acquire()
+#        self.mutex.acquire()
         if self.isstarted == False:
             retinfo = {
                     'retcode' : 0,
                     'errormsg' : 'ddztable is not started.'
                     }
             logger.debug('get_logistic_out get result:' + str(retinfo))
-            self.mutex.release()
+#            self.mutex.release()
             return retinfo
         logger.debug('get_logistic_out cur_player:' + str(self.curpos))
         cur_player = self.getplayer(self.curpos)
@@ -304,7 +304,7 @@ class DDZTable(object):
                     'errormsg' : 'cur_player is not exsited.'
                     }
             logger.debug('get_logistic_out get result:' + str(retinfo))
-            self.mutex.release()
+#            self.mutex.release()
             return retinfo
         
         #设置AI训练模式的训练单位
@@ -362,7 +362,7 @@ class DDZTable(object):
                     'errormsg' : 'I have not enable cards.'
                     }
             logger.debug('get_logistic_out get result:' + str(retinfo))
-            self.mutex.release()
+#            self.mutex.release()
             return retinfo
         else:
             retinfo = {}
@@ -374,7 +374,7 @@ class DDZTable(object):
             retinfo['card_result'] = cardlist
             retinfo['retcode'] = 1
             logger.debug('get_logistic_out get result:' + str(retinfo))
-            self.mutex.release()
+#            self.mutex.release()
             return retinfo
         
                 
