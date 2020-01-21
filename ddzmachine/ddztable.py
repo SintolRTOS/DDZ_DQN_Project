@@ -282,7 +282,6 @@ class DDZTable(object):
                          + ',' + str(self.is_twofarmer_new_logic)
                          + ',' + str(self.new_twofarmer_logic_result.cbCardCount)
                          + ',' + str(self.new_twofarmer_logic_result.cbResultCard))
-        
         self.mutex.release()
         
     
@@ -310,6 +309,7 @@ class DDZTable(object):
         #设置AI训练模式的训练单位
         result = tagOutCardResult()
         if self.ai_type_list.__contains__(AILogicType.DeepQTrainLAND.value) and self.land_train_user == self.curpos:
+            self.mutex.acquire()
             logger.debug('DeepQTrainLAND get_logistic_out get model logic.')
             loop_counter = 0
             while self.is_land_new_logic is False: #and loop_counter < 200:
@@ -323,7 +323,9 @@ class DDZTable(object):
                 logger.error('self.new_land_logic_result is None:' + str(loop_counter))
                 result = tagOutCardResult()
             self.is_land_new_logic = False
+            self.mutex.release()
         elif self.ai_type_list.__contains__(AILogicType.DeepQTrainFARMER_ONE.value) and self.one_farmer_train_user == self.curpos:
+            self.mutex.acquire()
             logger.debug('DeepQTrainFARMER_ONE get_logistic_out get model logic.')
             loop_counter = 0
             while self.is_onefarmer_new_logic is False: #and loop_counter < 200:
@@ -337,7 +339,9 @@ class DDZTable(object):
                 logger.error('self.new_onefarmer_logic_result is None:' + str(loop_counter))
                 result = tagOutCardResult()
             self.is_onefarmer_new_logic = False
+            self.mutex.release()
         elif self.ai_type_list.__contains__(AILogicType.DeepQTrainFARMER_TWO.value) and self.two_farmer_train_user == self.curpos:
+            self.mutex.acquire()
             logger.debug('DeepQTrainFARMER_TWO get_logistic_out get model logic.')
             loop_counter = 0
             while self.is_twofarmer_new_logic is False: #and loop_counter < 200:
@@ -351,11 +355,14 @@ class DDZTable(object):
                 logger.error('self.new_twofarmer_logic_result is None:' + str(loop_counter))
                 result = tagOutCardResult()
             self.is_twofarmer_new_logic = False
+            self.mutex.release()
         else:
+            self.mutex.acquire()
             logger.debug('get_logistic_out get normal logic.')
             bTurnCardCount = self.bTableInfo.getturncardcount()
             bTurnCardData = self.bTableInfo.getturncarddata()
             result = cur_player.getSearchOutCard(bTurnCardData,bTurnCardCount)
+            self.mutex.release()
         if result.cbCardCount == 0:
             retinfo = {
                     'retcode' : 0,
